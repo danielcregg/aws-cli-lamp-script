@@ -69,8 +69,11 @@ echo Installing LAMP on the new instance...
 # SSH into instance
 ssh -i WebServerKey.pem -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
 '\
-echo Install LAMP &&
-sudo apt update && sudo apt install apache2 mysql-server php -y &&
+echo Updating package repository... &&
+sudo apt-get update -qq && 
+echo Installing apache, mysql and php... &&
+sudo apt install apache2 mysql-server php -y &&
+echo Configuring LAMP server... &&
 sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
 sudo touch /var/www/html/info.php;sudo chmod 666 /var/www/html/info.php;sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the Apache default page.\n"
