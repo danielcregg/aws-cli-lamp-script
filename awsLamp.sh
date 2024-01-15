@@ -72,7 +72,7 @@ ssh -i WebServerKey.pem -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
 echo Updating package repository... &&
 sudo apt-get update -qq && 
 echo Installing apache, mysql and php... &&
-sudo apt install apache2 mysql-server php -y &&
+sudo apt install -f apache2 mysql-server php -y &&
 echo Configuring LAMP server... &&
 sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
 sudo touch /var/www/html/info.php;sudo chmod 666 /var/www/html/info.php;sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
