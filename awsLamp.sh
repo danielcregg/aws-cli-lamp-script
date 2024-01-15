@@ -1,3 +1,4 @@
+echo Cleaning up old resources...
 # Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
 EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" --query 'Tags[*].ResourceId' --output text)
 
@@ -25,43 +26,46 @@ if [ "$EXISTING_SG_ID" != "" ]; then
   aws ec2 delete-security-group --group-id $EXISTING_SG_ID
 fi
 
-# Create a new security group and get its ID
-SG_ID=$(aws ec2 create-security-group --group-name webServerSecurityGroup --description "Web Server security group" --output text)
-
-# Add rules to the security group
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
-
 # Check if the key pair exists
 if aws ec2 describe-key-pairs --key-name webServerKey >/dev/null 2>&1; then
   aws ec2 delete-key-pair --key-name webServerKey
   rm WebServerKey.pem
 fi
 
+echo Creating new security group...
+# Create a new security group and get its ID
+SG_ID=$(aws ec2 create-security-group --group-name webServerSecurityGroup --description "Web Server security group" --output text)
+
+echo Adding new rules to the security group...
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
+
+echo Creating new key pair...
 # Create a new key pair
 aws ec2 create-key-pair --key-name webServerKey --query 'KeyMaterial' --output text > WebServerKey.pem
 chmod 600 WebServerKey.pem
 
-# Create a new EC2 instance
+echo Creating a new EC2 instance...
 INSTANCE_ID=$(aws ec2 run-instances --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" --image-id ami-0c7217cdde317cfec --count 1 --instance-type t2.medium --key-name webServerKey --security-group-ids $SG_ID --output text --query 'Instances[0].InstanceId' --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
 
-# Waiting for the instance to enter the "running" state
+echo Waiting for the new instance to enter a running state
 aws ec2 wait instance-running --instance-ids $INSTANCE_ID
 
-# Allocate a new Elastic IP
+echo Allocating a new Elastic IP...
 ELASTIC_IP=$(aws ec2 allocate-address --domain vpc --query 'PublicIp' --output text)
 
 # Get the allocation ID of the Elastic IP
 ELASTIC_IP_ALLOCATION_ID=$(aws ec2 describe-addresses --public-ips $ELASTIC_IP --query 'Addresses[0].AllocationId' --output text)
 
-# Add a Name tag to the Elastic IP
+echo Adding a Name to the Elastic IP
 aws ec2 create-tags --resources $ELASTIC_IP_ALLOCATION_ID --tags Key=Name,Value=elasticIPWebServerAuto
 
-# Associate the Elastic IP with the instance
+echo Associating the new Elastic IP with the new instance...
 aws ec2 associate-address --instance-id $INSTANCE_ID --public-ip $ELASTIC_IP > /dev/null
 
+echo Installing LAMP on the new instance...
 # SSH into instance
 ssh -i WebServerKey.pem -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
 '\
