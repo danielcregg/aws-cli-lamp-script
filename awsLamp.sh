@@ -28,7 +28,7 @@ fi
 
 # Check if the key pair exists
 if aws ec2 describe-key-pairs --key-name webServerKey >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name webServerKey
+  aws ec2 delete-key-pair --key-name webServerKey > /dev/null
   rm WebServerKey.pem
 fi
 
@@ -50,7 +50,7 @@ chmod 600 WebServerKey.pem
 echo Creating a new EC2 instance...
 INSTANCE_ID=$(aws ec2 run-instances --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" --image-id ami-0c7217cdde317cfec --count 1 --instance-type t2.medium --key-name webServerKey --security-group-ids $SG_ID --output text --query 'Instances[0].InstanceId' --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
 
-echo Waiting for the new instance to enter a running state
+echo Waiting for the new instance to enter a running state...
 aws ec2 wait instance-running --instance-ids $INSTANCE_ID
 
 echo Allocating a new Elastic IP...
