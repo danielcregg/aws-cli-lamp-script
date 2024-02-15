@@ -118,5 +118,5 @@ printf "\nRun this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 echo Staying logged into this new VM
 echo Done.
-bash -l
+#bash -l
 '
