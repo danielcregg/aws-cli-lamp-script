@@ -71,27 +71,27 @@ echo Installing LAMP on the new instance...
 # SSH into instance
 ssh -i WebServerKey.pem -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
 '\
-echo "Installing LAMP..." &&
-sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
-echo Configuring LAMP... &&
-sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
-sudo touch /var/www/html/info.php;sudo chmod 666 /var/www/html/info.php;sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
-sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/ &&
-sudo rm -rf /var/www/html/index.html &&
-sudo systemctl restart apache2
+#echo "Installing LAMP..." &&
+#sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
+#echo Configuring LAMP... &&
+#sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
+#sudo touch /var/www/html/info.php;sudo chmod 666 /var/www/html/info.php;sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
+#sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/ &&
+#sudo rm -rf /var/www/html/index.html &&
+#sudo systemctl restart apache2
 
-echo "Enabling root login for SFTP..." &&
-sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
-sudo echo -e "tester\ntester" | sudo passwd root &&
-sudo systemctl restart sshd &&
+#echo "Enabling root login for SFTP..." &&
+#sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
+#sudo echo -e "tester\ntester" | sudo passwd root &&
+#sudo systemctl restart sshd &&
 
-echo "Enable Vscode tunnel login via browser..." && 
-sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
-sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
-sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
-sudo apt update -qq -y &&
-sudo apt install code -qq -y &&
-code --install-extension ms-vscode.remote-server
+#echo "Enable Vscode tunnel login via browser..." && 
+#sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
+#sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
+#sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
+#sudo apt update -qq -y &&
+#sudo apt install code -qq -y &&
+#sudo code --install-extension ms-vscode.remote-server
 #nohup sudo code tunnel &
 
 #echo Installing Adminer silently... &&
@@ -111,8 +111,8 @@ code --install-extension ms-vscode.remote-server
 
 printf "\nClick on this link to open the default Apache webpage: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to check php is correctly installed: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/info.php\e[0m\n"
-printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
-printf "\nRun this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
+#printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
+#printf "\nRun this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 echo Staying logged into this new VM
