@@ -5,7 +5,6 @@ This is an AWS CLI script to create an ubuntu LAMP server. This script is meant 
 1. Log into your AWS Dashboard
 2. Open the CloudShell and wait for it to load
 3. Issue this bash command:
-   // enter bash code snippit with syntax
 
 ```bash
 bash <(curl -sL tinyurl.com/awsLamp)
