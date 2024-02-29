@@ -28,10 +28,10 @@ if [ "$EXISTING_SG_ID" != "" ]; then
   aws ec2 delete-security-group --group-id $EXISTING_SG_ID
 fi
 
-# Check if the key pair exists
-if aws ec2 describe-key-pairs --key-name webServerKey >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name webServerKey > /dev/null
-  rm WebServerKey.pem
+# Check if a key pair exists and if so delete it
+if aws ec2 describe-key-pairs --key-name id_rsa >/dev/null 2>&1; then
+  aws ec2 delete-key-pair --key-name id_rsa > /dev/null
+  rm id_rsa.pem
 fi
 
 echo Creating new security group...
@@ -46,11 +46,12 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 
 echo Creating new key pair...
 # Create a new key pair
-aws ec2 create-key-pair --key-name webServerKey --query 'KeyMaterial' --output text > WebServerKey.pem
-chmod 600 WebServerKey.pem
+aws ec2 create-key-pair --key-name id_rsa --query 'KeyMaterial' --output text > id_rsa
+sudo chmod 600 id_rsa
+sudo mv id_rsa .ssh/
 
 echo Creating a new EC2 instance...
-INSTANCE_ID=$(aws ec2 run-instances --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" --image-id ami-0c7217cdde317cfec --count 1 --instance-type t2.medium --key-name webServerKey --security-group-ids $SG_ID --output text --query 'Instances[0].InstanceId' --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
+INSTANCE_ID=$(aws ec2 run-instances --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" --image-id ami-0c7217cdde317cfec --count 1 --instance-type t2.medium --key-name id_rsa --security-group-ids $SG_ID --output text --query 'Instances[0].InstanceId' --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
 
 echo Waiting for the new instance to enter a running state...
 aws ec2 wait instance-running --instance-ids $INSTANCE_ID
@@ -69,7 +70,7 @@ aws ec2 associate-address --instance-id $INSTANCE_ID --public-ip $ELASTIC_IP > /
 
 echo Installing LAMP on the new instance...
 # SSH into instance
-ssh -i WebServerKey.pem -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
+ssh -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
 '\
 echo "Installing LAMP..." &&
 sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
