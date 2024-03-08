@@ -70,7 +70,7 @@ aws ec2 associate-address --instance-id $INSTANCE_ID --public-ip $ELASTIC_IP > /
 
 echo Installing LAMP on the new instance...
 # SSH into instance
-sudo ssh -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
+sudo ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$ELASTIC_IP \
 '\
 echo "Installing LAMP..." &&
 sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
