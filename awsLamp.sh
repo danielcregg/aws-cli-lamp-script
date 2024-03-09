@@ -31,7 +31,7 @@ fi
 # Check if a key pair exists and if so delete it
 if aws ec2 describe-key-pairs --key-name id_rsa >/dev/null 2>&1; then
   aws ec2 delete-key-pair --key-name id_rsa > /dev/null
-  rm id_rsa
+  sudo rm ~/.ssh/id_rsa
 fi
 
 echo Creating new security group...
