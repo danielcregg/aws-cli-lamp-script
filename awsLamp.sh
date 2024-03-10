@@ -45,12 +45,14 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
 
 echo Creating new key pair...
-# Create a new key pair
-aws ec2 create-key-pair --key-name id_rsa --query 'KeyMaterial' --output text > id_rsa
+aws ec2 create-key-pair \
+  --key-name id_rsa \
+  --query 'KeyMaterial' \
+  --output text > id_rsa
 sudo chmod 600 id_rsa
 sudo mkdir -p ~/.ssh && sudo mv id_rsa ~/.ssh/
 
-# Get the latest Amazon Linux 2 AMI in the current region
+echo Finding the latest Amazon Linux 2 AMI in the current region...
 AMI_ID=$(aws ec2 describe-images \
   --owners amazon \
   --filters 'Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2' 'Name=state,Values=available' \
@@ -58,30 +60,41 @@ AMI_ID=$(aws ec2 describe-images \
   --output text)
 
 INSTANCE_ID=$(aws ec2 run-instances \
- --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
- --image-id $AMI_ID \
- --count 1 \
- --instance-type t2.medium \
- --key-name id_rsa \
- --security-group-ids $SG_ID \
- --output text \
- --query 'Instances[0].InstanceId' \
- --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
+  --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
+  --image-id $AMI_ID \
+  --count 1 \
+  --instance-type t2.medium \
+  --key-name id_rsa \
+  --security-group-ids $SG_ID \
+  --output text \
+  --query 'Instances[0].InstanceId' \
+  --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
 
 echo Waiting for the new instance to enter a running state...
-aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+aws ec2 wait instance-running \
+  --instance-ids $INSTANCE_ID
 
 echo Allocating a new Elastic IP...
-ELASTIC_IP=$(aws ec2 allocate-address --domain vpc --query 'PublicIp' --output text)
+ELASTIC_IP=$(aws ec2 allocate-address \
+  --domain vpc \
+  --query 'PublicIp' \
+  --output text)
 
 # Get the allocation ID of the Elastic IP
-ELASTIC_IP_ALLOCATION_ID=$(aws ec2 describe-addresses --public-ips $ELASTIC_IP --query 'Addresses[0].AllocationId' --output text)
+ELASTIC_IP_ALLOCATION_ID=$(aws ec2 describe-addresses \
+  --public-ips $ELASTIC_IP \
+  --query 'Addresses[0].AllocationId' \
+  --output text)
 
 echo Adding a Name to the Elastic IP
-aws ec2 create-tags --resources $ELASTIC_IP_ALLOCATION_ID --tags Key=Name,Value=elasticIPWebServerAuto
+aws ec2 create-tags \
+  --resources $ELASTIC_IP_ALLOCATION_ID \
+  --tags Key=Name,Value=elasticIPWebServerAuto
 
 echo Associating the new Elastic IP with the new instance...
-aws ec2 associate-address --instance-id $INSTANCE_ID --public-ip $ELASTIC_IP > /dev/null
+aws ec2 associate-address \
+  --instance-id $INSTANCE_ID \
+  --public-ip $ELASTIC_IP > /dev/null
 
 echo Installing LAMP on the new instance...
 # SSH into instance
