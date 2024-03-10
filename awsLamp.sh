@@ -53,7 +53,15 @@ sudo chmod 600 id_rsa
 sudo mkdir -p ~/.ssh && sudo mv id_rsa ~/.ssh/
 
 echo Finding the latest Amazon Linux 2 AMI in the current region...
-AMI_ID=$(aws ec2 describe-images --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2' 'Name=state,Values=available' --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+#AMI_ID=$(aws ec2 describe-images --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' 'Name=state,Values=available' 'Name=virtualization-type,Values=hvm' 'Name=architecture,Values=x86_64' --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+AMI_ID=$(aws ec2 describe-images \
+    --owners 099720109477 \
+    --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
+              'Name=state,Values=available' \
+              'Name=virtualization-type,Values=hvm' \
+              'Name=architecture,Values=x86_64' \
+    --query 'sort_by(Images, &CreationDate)[-1].ImageId' \
+    --output text)
 
 INSTANCE_ID=$(aws ec2 run-instances \
   --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
