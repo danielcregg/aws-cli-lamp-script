@@ -11,7 +11,7 @@ do
 done
 
 # Get the IDs of the instances with the name "myWebServerAuto"
-EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=myWebServerAuto" "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].InstanceId' --output text)
+EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=myWebServerAuto" --query 'Reservations[*].Instances[*].InstanceId' --output text)
 
 # If there are any running instances with the name "myWebServerAuto", terminate them
 if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
