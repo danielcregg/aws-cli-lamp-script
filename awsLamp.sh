@@ -52,8 +52,16 @@ aws ec2 create-key-pair \
 sudo chmod 600 id_rsa
 sudo mkdir -p ~/.ssh && sudo mv id_rsa ~/.ssh/
 
-echo Finding the latest Amazon Linux 2 AMI in the current region...
-#AMI_ID=$(aws ec2 describe-images --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' 'Name=state,Values=available' 'Name=virtualization-type,Values=hvm' 'Name=architecture,Values=x86_64' --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+echo Finding the latest Ubuntu Server Linux AMI in the current region...
+aws ec2 describe-images \
+    --owners 099720109477 \
+    --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
+              'Name=state,Values=available' \
+              'Name=virtualization-type,Values=hvm' \
+              'Name=architecture,Values=x86_64' \
+    --query 'sort_by(Images, &CreationDate)[-1].Description' \
+    --output text
+
 AMI_ID=$(aws ec2 describe-images \
     --owners 099720109477 \
     --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
