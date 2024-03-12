@@ -2,7 +2,10 @@
 # bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
 echo Cleaning up old resources...
 # Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
-EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" --query 'Tags[*].ResourceId' --output text)
+EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
+    --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
+    --query 'Tags[*].ResourceId' \
+    --output text)
 
 # If there are any Elastic IPs with the tag name "WebServerPublicIPAuto", release them
 for ALLOCATION_ID in $EXISTING_ELASTIC_IP_ALLOCATION_IDS
@@ -11,7 +14,10 @@ do
 done
 
 # Get the IDs of the instances with the name "myWebServerAuto"
-EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=myWebServerAuto" --query 'Reservations[*].Instances[*].InstanceId' --output text)
+EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
+    --filters "Name=tag:Name,Values=myWebServerAuto" \
+    --query 'Reservations[*].Instances[*].InstanceId' \
+    --output text)
 
 # If there are any running instances with the name "myWebServerAuto", terminate them
 if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
@@ -21,7 +27,10 @@ if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
 fi
 
 # Get the ID of the security group if it exists
-EXISTING_SG_ID=$(aws ec2 describe-security-groups --group-names webServerSecurityGroup --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null)
+EXISTING_SG_ID=$(aws ec2 describe-security-groups \
+    --group-names webServerSecurityGroup \
+    --query 'SecurityGroups[0].GroupId' \
+    --output text 2>/dev/null)
 
 # If the security group exists, delete it
 if [ "$EXISTING_SG_ID" != "" ]; then
@@ -29,9 +38,10 @@ if [ "$EXISTING_SG_ID" != "" ]; then
 fi
 
 # Check if a key pair exists and if so delete it
-if aws ec2 describe-key-pairs --key-name id_rsa >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name id_rsa > /dev/null
-  sudo rm ~/.ssh/id_rsa
+if aws ec2 describe-key-pairs --key-name key_private_WebServerAuto >/dev/null 2>&1; then
+  aws ec2 delete-key-pair --key-name key_private_WebServerAuto > /dev/null
+  sudo test -f ~/.ssh/key_private_WebServerAuto && sudo rm -rf ~/.ssh/key_private_WebServerAuto
+  sudo test -f ~/.ssh/key_WebServerAuto.pub && sudo rm -rf ~/.ssh/key_WebServerAuto.pub
 fi
 
 echo Creating new security group...
@@ -46,13 +56,14 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 
 echo Creating new key pair...
 aws ec2 create-key-pair \
-  --key-name id_rsa \
+  --key-name key_private_WebServerAuto \
   --query 'KeyMaterial' \
-  --output text > id_rsa
-sudo chmod 600 id_rsa
-sudo mkdir -p ~/.ssh && sudo mv id_rsa ~/.ssh/
-sudo ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
-ssh-copy-id -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@52.214.202.28
+  --output text > key_private_WebServerAuto
+  
+sudo chmod 600 key_private_WebServerAuto
+sudo mkdir -p ~/.ssh && sudo mv key_private_WebServerAuto ~/.ssh/
+sudo ssh-keygen -y -f ~/.ssh/key_private_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
+ssh-copy-id -i ~/.ssh/key_private_WebServerAuto -o StrictHostKeyChecking=no ubuntu@52.214.202.28
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
