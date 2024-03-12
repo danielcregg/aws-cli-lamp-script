@@ -47,7 +47,7 @@ echo Creating new security group...
 # Create a new security group and get its ID
 SG_ID=$(aws ec2 create-security-group --group-name webServerSecurityGroup --description "Web Server security group" --output text)
 
-echo Opening required ports
+echo Opening required ports (i.e. SSH, HTTP, HTTPS and RDP)...
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
@@ -80,7 +80,8 @@ AMI_ID=$(aws ec2 describe-images \
               'Name=architecture,Values=x86_64' \
     --query 'sort_by(Images, &CreationDate)[-1].ImageId' \
     --output text)
-
+    
+echo Creating instance...
 INSTANCE_ID=$(aws ec2 run-instances \
     --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
     --image-id $AMI_ID \
@@ -118,7 +119,7 @@ aws ec2 associate-address \
     --instance-id $INSTANCE_ID \
     --public-ip $ELASTIC_IP > /dev/null
 
-echo copying public key to remote instance...
+#echo copying public key to remote instance...
 #ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
 
 echo SSHing into new instance and installing LAMP...
