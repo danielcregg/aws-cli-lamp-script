@@ -133,10 +133,13 @@ echo Trying to SSH into new instance...
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Successfully SSHed into new instance..." &&
+
 echo "Updating apt repos..." &&
-sudo apt update -qq &&
+sudo apt update &&
+
 echo Installing LAMP... &&
-sudo apt install apache2 mysql-server php -qq -f -y &&
+sudo apt -f -y install apache2 mysql-server php &&
+
 echo Configuring LAMP... &&
 sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
 sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/ &&
