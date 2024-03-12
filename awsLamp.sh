@@ -121,8 +121,6 @@ aws ec2 associate-address \
     --instance-id $INSTANCE_ID \
     --public-ip $ELASTIC_IP > /dev/null
 
-#echo copying public key to remote instance...
-#ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
 echo "Host ws
     HostName $ELASTIC_IP
     User ubuntu
