@@ -128,9 +128,9 @@ ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Successfully SSHed into new instance..." &&
 echo "Updating apt repos..." &&
-sudo apt update -qqq 2>/dev/null &&
+sudo apt update -qqq > /dev/null &&
 echo Installing LAMP... &&
-sudo apt install apache2 mysql-server php -qqq -f -y 2>/dev/null &&
+sudo apt install apache2 mysql-server php -qqq -f -y > /dev/null &&
 echo Configuring LAMP... &&
 sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
 sudo touch /var/www/html/info.php;sudo chmod 666 /var/www/html/info.php;sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
@@ -148,7 +148,7 @@ sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor
 sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
 sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
 sudo apt update -qqq 2>/dev/null &&
-sudo apt install code -qqq -y 2>/dev/null &&
+sudo apt install code -qqq -y > /dev/null &&
 sudo code --install-extension ms-vscode.remote-server
 #sudo code tunnel service install
 #sudo code tunnel --no-sleep
