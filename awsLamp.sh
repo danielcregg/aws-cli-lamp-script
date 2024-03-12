@@ -51,6 +51,8 @@ aws ec2 create-key-pair \
   --output text > id_rsa
 sudo chmod 600 id_rsa
 sudo mkdir -p ~/.ssh && sudo mv id_rsa ~/.ssh/
+sudo ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+ssh-copy-id -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@52.214.202.28
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
@@ -110,7 +112,7 @@ aws ec2 associate-address \
 
 echo Installing LAMP on the new instance...
 # SSH into instance
-sudo ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$ELASTIC_IP \
+ssh ubuntu@$ELASTIC_IP \
 '\
 echo "Installing LAMP..." &&
 sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
@@ -159,5 +161,5 @@ printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 echo Staying logged into this new VM
 echo Done.
-#bash -l
+bash -l
 '
