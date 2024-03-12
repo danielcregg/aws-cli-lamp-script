@@ -129,8 +129,8 @@ echo "Host myWebServerAuto
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
     
 echo Trying to SSH into new instance...
-#ssh -o StrictHostKeyChecking=no $ELASTIC_IP
-ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
+ssh -o StrictHostKeyChecking=no myWebServerAuto \
+#ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Successfully SSHed into new instance..." &&
 echo "Updating apt repos..." &&
