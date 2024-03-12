@@ -47,7 +47,7 @@ echo Creating new security group...
 # Create a new security group and get its ID
 SG_ID=$(aws ec2 create-security-group --group-name webServerSecurityGroup --description "Web Server security group" --output text)
 
-echo Adding new rules to the security group...
+echo Opening required ports
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
@@ -169,7 +169,7 @@ printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/
 printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel service install;sudo code tunnel --no-sleep\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
-echo YOU ARE NOW SSHed in to your new VM as ubuntu user!!! Type exit to go back to your cloud shell.
+#echo YOU ARE NOW SSHed in to your new VM as ubuntu user!!! Type exit to go back to your cloud shell.
 echo Done.
-bash -l
+#bash -l
 '
