@@ -61,6 +61,7 @@ aws ec2 create-key-pair \
     --query 'KeyMaterial' \
     --output text > ~/.ssh/key_WebServerAuto  
 chmod 600 ~/.ssh/key_WebServerAuto
+
 #ssh-keygen -y -f ~/.ssh/key_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
@@ -122,7 +123,11 @@ aws ec2 associate-address \
 
 #echo copying public key to remote instance...
 #ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
-
+echo "Host myWebServerAuto
+    HostName $ELASTIC_IP
+    User ubuntu
+    IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
+    
 echo Trying to SSH into new instance...
 #ssh -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
