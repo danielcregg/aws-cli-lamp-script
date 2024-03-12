@@ -40,8 +40,7 @@ fi
 # Check if a key pair exists and if so delete it
 if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
   aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
-  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto
-  sudo test -f ~/.ssh/key_WebServerAuto.pub && sudo rm -rf ~/.ssh/key_WebServerAuto.pub
+  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_hosts*
 fi
 
 echo Creating new security group...
@@ -61,7 +60,7 @@ aws ec2 create-key-pair \
     --query 'KeyMaterial' \
     --output text > ~/.ssh/key_WebServerAuto  
 chmod 600 ~/.ssh/key_WebServerAuto
-ssh-keygen -y -f ~/.ssh/key_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
+#ssh-keygen -y -f ~/.ssh/key_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
@@ -83,47 +82,47 @@ AMI_ID=$(aws ec2 describe-images \
     --output text)
 
 INSTANCE_ID=$(aws ec2 run-instances \
-  --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
-  --image-id $AMI_ID \
-  --count 1 \
-  --instance-type t2.medium \
-  --key-name key_WebServerAuto \
-  --security-group-ids $SG_ID \
-  --output text \
-  --query 'Instances[0].InstanceId' \
-  --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
+    --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
+    --image-id $AMI_ID \
+    --count 1 \
+    --instance-type t2.medium \
+    --key-name key_WebServerAuto \
+    --security-group-ids $SG_ID \
+    --output text \
+    --query 'Instances[0].InstanceId' \
+    --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
 
 echo Waiting for the new instance to enter a running state...
 aws ec2 wait instance-running \
-  --instance-ids $INSTANCE_ID
+    --instance-ids $INSTANCE_ID
 
 echo Allocating a new Elastic IP...
 ELASTIC_IP=$(aws ec2 allocate-address \
-  --domain vpc \
-  --query 'PublicIp' \
-  --output text)
+    --domain vpc \
+    --query 'PublicIp' \
+    --output text)
 
 # Get the allocation ID of the Elastic IP
 ELASTIC_IP_ALLOCATION_ID=$(aws ec2 describe-addresses \
-  --public-ips $ELASTIC_IP \
-  --query 'Addresses[0].AllocationId' \
-  --output text)
+    --public-ips $ELASTIC_IP \
+    --query 'Addresses[0].AllocationId' \
+    --output text)
 
 echo Adding a Name to the Elastic IP
 aws ec2 create-tags \
-  --resources $ELASTIC_IP_ALLOCATION_ID \
-  --tags Key=Name,Value=elasticIPWebServerAuto
+    --resources $ELASTIC_IP_ALLOCATION_ID \
+    --tags Key=Name,Value=elasticIPWebServerAuto
 
 echo Associating the new Elastic IP with the new instance...
 aws ec2 associate-address \
-  --instance-id $INSTANCE_ID \
-  --public-ip $ELASTIC_IP > /dev/null
+    --instance-id $INSTANCE_ID \
+    --public-ip $ELASTIC_IP > /dev/null
 
 echo copying public key to remote instance...
-ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
+#ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
 
 echo SSHing into new instance and installing LAMP...
-ssh -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Installing LAMP..." &&
 sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
