@@ -128,12 +128,14 @@ ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Successfully SSHed into new instance..." &&
 echo "Updating apt repos..." &&
-sudo apt update -qqq > /dev/null &&
+sudo apt update -qqq 2>/dev/null &&
 echo Installing LAMP... &&
 sudo apt install apache2 mysql-server php -qqq -f -y > /dev/null &&
 echo Configuring LAMP... &&
 sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
-sudo touch /var/www/html/info.php;sudo chmod 666 /var/www/html/info.php;sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
+sudo touch /var/www/html/info.php && 
+sudo chmod 666 /var/www/html/info.php && 
+sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
 sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/ &&
 sudo rm -rf /var/www/html/index.html &&
 sudo systemctl restart apache2
