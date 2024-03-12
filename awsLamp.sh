@@ -1,4 +1,4 @@
-# This script is designed to be run in AWS CloudShell. Here are two bash commands to run below:
+# This script is designed to be run in AWS CloudShell. Here are two bash differnet commands to run this script:
 # bash <(curl -sL tinyurl.com/awsLamp)
 # bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
 echo Cleaning up old resources...
@@ -45,8 +45,10 @@ if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
 fi
 
 echo Creating new security group...
-# Create a new security group and get its ID
-SG_ID=$(aws ec2 create-security-group --group-name webServerSecurityGroup --description "Web Server security group" --output text)
+SG_ID=$(aws ec2 create-security-group \
+    --group-name webServerSecurityGroup \
+    --description "Web Server security group" \
+    --output text)
 
 echo Opening required ports i.e. SSH, HTTP, HTTPS and RDP...
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
@@ -61,8 +63,6 @@ aws ec2 create-key-pair \
     --query 'KeyMaterial' \
     --output text > ~/.ssh/key_WebServerAuto  
 chmod 600 ~/.ssh/key_WebServerAuto
-
-#ssh-keygen -y -f ~/.ssh/key_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
@@ -129,7 +129,6 @@ echo "Host ws
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
     
 echo Trying to SSH into new instance...
-#ssh -o StrictHostKeyChecking=no myWebServerAuto \
 sleep 15
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
