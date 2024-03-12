@@ -134,7 +134,7 @@ ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Successfully SSHed into new instance..." &&
 echo "Updating apt repos..." &&
-sudo apt update -qqq > /dev/null &&
+sudo apt update -qqq 2>/dev/null &&
 echo Installing LAMP... &&
 sudo apt install apache2 mysql-server php -qqq -f -y > /dev/null &&
 echo Configuring LAMP... &&
@@ -156,7 +156,7 @@ sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor
 sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
 sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
 sudo apt update -qqq > /dev/null &&
-sudo apt install code -qqq -y > /dev/null &&
+sudo apt install code -qqq -y 2>/dev/null &&
 code --install-extension ms-vscode.remote-server > /dev/null &&
 #sudo code tunnel service install
 #sudo code tunnel --no-sleep
@@ -183,7 +183,7 @@ printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 #echo YOU ARE NOW SSHed in to your new VM as ubuntu user!!! Type exit to go back to your cloud shell.
+printf "\nYou can log into your new VM using... \e[3;4;33mssh myWebServerAuto\e[0m\n"
 echo Done.
-echo You can log into your new VM using... ssh myWebServerAuto
 #bash -l
 '
