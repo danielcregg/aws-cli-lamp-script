@@ -128,7 +128,7 @@ ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Successfully SSHed into new instance..." &&
 echo "Updating apt repos..." &&
-sudo apt update -qqq 2>/dev/null &&
+sudo apt update -qqq > /dev/null &&
 echo Installing LAMP... &&
 sudo apt install apache2 mysql-server php -qqq -f -y > /dev/null &&
 echo Configuring LAMP... &&
@@ -149,7 +149,7 @@ echo "Enable Vscode tunnel login via browser..." &&
 sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
 sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
 sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
-sudo apt update -qqq 2>/dev/null &&
+sudo apt update -qqq > /dev/null &&
 sudo apt install code -qqq -y > /dev/null &&
 code --install-extension ms-vscode.remote-server > /dev/null &&
 #sudo code tunnel service install
