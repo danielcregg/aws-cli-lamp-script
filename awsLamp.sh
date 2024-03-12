@@ -2,10 +2,7 @@
 # bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
 echo Cleaning up old resources...
 # Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
-EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
-    --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
-    --query 'Tags[*].ResourceId' \
-    --output text)
+EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" --query 'Tags[*].ResourceId' --output text)
 
 # If there are any Elastic IPs with the tag name "WebServerPublicIPAuto", release them
 for ALLOCATION_ID in $EXISTING_ELASTIC_IP_ALLOCATION_IDS
@@ -55,15 +52,13 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
 
 echo Creating new key pair...
+mkdir -p ~/.ssh
 aws ec2 create-key-pair \
-  --key-name key_private_WebServerAuto \
-  --query 'KeyMaterial' \
-  --output text > key_private_WebServerAuto
-  
-sudo chmod 600 key_private_WebServerAuto
-sudo mkdir -p ~/.ssh && sudo mv key_private_WebServerAuto ~/.ssh/
-sudo ssh-keygen -y -f ~/.ssh/key_private_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
-ssh-copy-id -i ~/.ssh/key_private_WebServerAuto -o StrictHostKeyChecking=no ubuntu@52.214.202.28
+    --key-name key_private_WebServerAuto \
+    --query 'KeyMaterial' \
+    --output text > ~/.ssh/key_private_WebServerAuto  
+chmod 600 ~/.ssh/key_private_WebServerAuto
+ssh-keygen -y -f ~/.ssh/key_private_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
@@ -89,7 +84,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
   --image-id $AMI_ID \
   --count 1 \
   --instance-type t2.medium \
-  --key-name id_rsa \
+  --key-name key_private_WebServerAuto \
   --security-group-ids $SG_ID \
   --output text \
   --query 'Instances[0].InstanceId' \
@@ -121,8 +116,10 @@ aws ec2 associate-address \
   --instance-id $INSTANCE_ID \
   --public-ip $ELASTIC_IP > /dev/null
 
-echo Installing LAMP on the new instance...
-# SSH into instance
+echo copying public key to remote instance...
+ssh-copy-id -i ~/.ssh/key_private_WebServerAuto -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
+
+echo SSHing into new instance and installing LAMP...
 ssh ubuntu@$ELASTIC_IP \
 '\
 echo "Installing LAMP..." &&
