@@ -151,7 +151,7 @@ sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.
 sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
 sudo apt update -qqq 2>/dev/null &&
 sudo apt install code -qqq -y > /dev/null &&
-sudo code --install-extension ms-vscode.remote-server
+code --install-extension ms-vscode.remote-server
 #sudo code tunnel service install
 #sudo code tunnel --no-sleep
 
