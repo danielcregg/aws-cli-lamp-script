@@ -129,8 +129,8 @@ echo "Host myWebServerAuto
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
     
 echo Trying to SSH into new instance...
-ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 #ssh -o StrictHostKeyChecking=no myWebServerAuto \
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 echo "Successfully SSHed into new instance..." &&
 echo "Updating apt repos..." &&
@@ -184,5 +184,6 @@ printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 #echo YOU ARE NOW SSHed in to your new VM as ubuntu user!!! Type exit to go back to your cloud shell.
 echo Done.
+echo You can log into your new VM using... ssh myWebServerAuto
 #bash -l
 '
