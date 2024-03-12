@@ -123,7 +123,7 @@ aws ec2 associate-address \
 
 #echo copying public key to remote instance...
 #ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
-echo "Host myWebServerAuto
+echo "Host ws
     HostName $ELASTIC_IP
     User ubuntu
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
@@ -180,7 +180,7 @@ printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
 #printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 #echo YOU ARE NOW SSHed in to your new VM as ubuntu user!!! Type exit to go back to your cloud shell.
-printf "\nYou can log into your new VM using... \e[3;4;33mssh myWebServerAuto\e[0m\n"
+printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
 echo Done.
 #bash -l
 '
