@@ -38,9 +38,9 @@ if [ "$EXISTING_SG_ID" != "" ]; then
 fi
 
 # Check if a key pair exists and if so delete it
-if aws ec2 describe-key-pairs --key-name key_private_WebServerAuto >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name key_private_WebServerAuto > /dev/null
-  sudo test -f ~/.ssh/key_private_WebServerAuto && sudo rm -rf ~/.ssh/key_private_WebServerAuto
+if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
+  aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
+  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto
   sudo test -f ~/.ssh/key_WebServerAuto.pub && sudo rm -rf ~/.ssh/key_WebServerAuto.pub
 fi
 
@@ -57,11 +57,11 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 echo Creating new key pair...
 mkdir -p ~/.ssh
 aws ec2 create-key-pair \
-    --key-name key_private_WebServerAuto \
+    --key-name key_WebServerAuto \
     --query 'KeyMaterial' \
-    --output text > ~/.ssh/key_private_WebServerAuto  
-chmod 600 ~/.ssh/key_private_WebServerAuto
-ssh-keygen -y -f ~/.ssh/key_private_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
+    --output text > ~/.ssh/key_WebServerAuto  
+chmod 600 ~/.ssh/key_WebServerAuto
+ssh-keygen -y -f ~/.ssh/key_WebServerAuto > ~/.ssh/key_WebServerAuto.pub
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
@@ -87,7 +87,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
   --image-id $AMI_ID \
   --count 1 \
   --instance-type t2.medium \
-  --key-name key_private_WebServerAuto \
+  --key-name key_WebServerAuto \
   --security-group-ids $SG_ID \
   --output text \
   --query 'Instances[0].InstanceId' \
