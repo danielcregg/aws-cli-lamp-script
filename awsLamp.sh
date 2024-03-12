@@ -41,7 +41,7 @@ fi
 # Check if a key pair exists and if so delete it
 if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
   aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
-  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_hosts*
+  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
 fi
 
 echo Creating new security group...
