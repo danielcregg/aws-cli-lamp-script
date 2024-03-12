@@ -120,7 +120,7 @@ aws ec2 associate-address \
   --public-ip $ELASTIC_IP > /dev/null
 
 echo copying public key to remote instance...
-ssh-copy-id -i ~/.ssh/key_WebServerAuto -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
+ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
 
 echo SSHing into new instance and installing LAMP...
 ssh -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
