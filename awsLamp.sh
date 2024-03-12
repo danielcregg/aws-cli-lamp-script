@@ -120,10 +120,10 @@ aws ec2 associate-address \
   --public-ip $ELASTIC_IP > /dev/null
 
 echo copying public key to remote instance...
-ssh-copy-id -i ~/.ssh/key_private_WebServerAuto -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
+ssh-copy-id -i ~/.ssh/key_WebServerAuto -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
 
 echo SSHing into new instance and installing LAMP...
-ssh ubuntu@$ELASTIC_IP \
+ssh -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP \
 '\
 echo "Installing LAMP..." &&
 sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
