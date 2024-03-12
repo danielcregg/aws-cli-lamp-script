@@ -2,7 +2,10 @@
 # bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
 echo Cleaning up old resources...
 # Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
-EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" --query 'Tags[*].ResourceId' --output text)
+EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
+    --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
+    --query 'Tags[*].ResourceId' \
+    --output text)
 
 # If there are any Elastic IPs with the tag name "WebServerPublicIPAuto", release them
 for ALLOCATION_ID in $EXISTING_ELASTIC_IP_ALLOCATION_IDS
