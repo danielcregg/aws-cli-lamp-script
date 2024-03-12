@@ -123,11 +123,14 @@ aws ec2 associate-address \
 #echo copying public key to remote instance...
 #ssh-copy-id -i ~/.ssh/key_WebServerAuto.pub -o StrictHostKeyChecking=no ubuntu@$ELASTIC_IP
 
-echo SSHing into new instance and installing LAMP...
+echo Trying to SSH into new instance...
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
-echo "Installing LAMP..." &&
-sudo apt update -qq -y && sudo apt install apache2 mysql-server php -qq -f -y &&
+echo "Successfully SSHed into new instance..." &&
+echo "Updating apt repos..." &&
+sudo apt update -qqq 2>/dev/null &&
+echo Installing LAMP... &&
+sudo apt install apache2 mysql-server php -qqq -f -y 2>/dev/null &&
 echo Configuring LAMP... &&
 sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
 sudo touch /var/www/html/info.php;sudo chmod 666 /var/www/html/info.php;sudo echo "<?php phpinfo(); ?>" > /var/www/html/info.php &&
