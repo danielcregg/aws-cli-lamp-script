@@ -200,6 +200,15 @@ wp plugin list --status=inactive --field=name --allow-root | xargs --replace=% s
 wp theme list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp theme delete % --allow-root &&
 sudo -u www-data wp plugin install all-in-one-wp-migration --activate &&
 
+echo Installing Matomo Analytics Server &&
+sudo apt -y install php-dom php-dom php-xml php-simplexml &&
+sudo apt -y install unzip php-mbstring;sudo service apache2 restart &&
+sudo wget https://builds.matomo.org/matomo.zip -P ~;sudo apt -y install unzip;sudo unzip -oq ~/matomo.zip -d /var/www/html &&
+sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
+sudo mysql -u root -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY 'password';GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
+sudo -u www-data wp plugin install matomo --activate &&
+#sudo -u www-data wp plugin install wp-piwik --activate &&
+
 printf "\nClick on this link to open the default Apache webpage: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to check php is correctly installed: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/info.php\e[0m\n"
 printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
@@ -209,6 +218,7 @@ printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(di
 printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/wp-admin\e[0m - You should see the WordPress Dashboard - admin/password\n"
+printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
 echo ********************************
 echo * SUCCESS! - Script completed! *
 echo ********************************
