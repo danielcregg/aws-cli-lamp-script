@@ -194,7 +194,9 @@ sudo sed -i.bak -e 's/^max_execution_time.*/max_execution_time = 300/g' /etc/php
 sudo sed -i.bak -e 's/^max_input_time.*/max_input_time = 300/g' /etc/php/*/apache2/php.ini &&
 sudo service apache2 restart &&
 echo Configuring WordPress &&
-sudo wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && sudo chmod +x wp-cli.phar;sudo mv wp-cli.phar /usr/local/bin/wp; &&
+sudo wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar &&
+sudo chmod +x wp-cli.phar &&
+sudo mv wp-cli.phar /usr/local/bin/wp &&
 cd /var/www/html;sudo -u www-data wp core install --url=$(dig +short myip.opendns.com @resolver1.opendns.com) --title='Blog Title' --admin_user='admin' --admin_password='password' --admin_email='x@y.com' &&
 wp plugin list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp plugin delete % --allow-root &&
 wp theme list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp theme delete % --allow-root &&
