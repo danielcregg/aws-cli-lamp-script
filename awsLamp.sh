@@ -126,7 +126,7 @@ echo "Host ws
     User ubuntu
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
     
-echo Trying to SSH into new instance...
+echo Trying to SSH into new instance...please hold...
 sleep 15
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
