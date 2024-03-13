@@ -176,7 +176,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin &&
 
 echo Installing WordPress &&
 sudo apt -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
-sudo mysql -u root -Bse "CREATE DATABASE IF NOT EXISTS wordpress;CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
+sudo mysql -Bse "CREATE DATABASE IF NOT EXISTS wordpress;CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
 sudo rm -rf /var/www/html/ && sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html/ && sudo tar xzvf /var/www/html/latest.tar.gz -C /var/www/html &&
 sudo cp /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php && cd . &&
 sudo rsync -IavP /var/www/html/wordpress/ /var/www/html/ &&
@@ -207,7 +207,7 @@ sudo apt -y install php-dom php-dom php-xml php-simplexml &&
 sudo apt -y install unzip php-mbstring;sudo service apache2 restart &&
 sudo wget https://builds.matomo.org/matomo.zip -P ~;sudo apt -y install unzip;sudo unzip -oq ~/matomo.zip -d /var/www/html &&
 sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
-sudo mysql -u root -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY 'password';GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
+sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
 sudo -u www-data wp plugin install matomo --activate &&
 #sudo -u www-data wp plugin install wp-piwik --activate &&
 
