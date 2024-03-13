@@ -174,42 +174,42 @@ sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm pass
 sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" &&
 sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin &&
 
-echo Installing WordPress &&
-sudo apt -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
-sudo mysql -Bse "CREATE DATABASE IF NOT EXISTS wordpress;CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
-sudo rm -rf /var/www/html/ && sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html/ && sudo tar xzvf /var/www/html/latest.tar.gz -C /var/www/html &&
-sudo cp /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php && cd . &&
-sudo rsync -IavP /var/www/html/wordpress/ /var/www/html/ &&
-sudo mkdir -p /var/www/html/wp-content/uploads &&
-sudo chown -R www-data:www-data /var/www &&
-sudo rm -rf /var/www/html/latest.tar.gz  /var/www/html/wordpress &&
-sudo sed -i -e 's/database_name_here/wordpress/g' /var/www/html/wp-config.php &&
-sudo sed -i -e 's/username_here/wordpressuser/g' /var/www/html/wp-config.php &&
-sudo sed -i -e 's/password_here/password/g' /var/www/html/wp-config.php &&
-sudo chmod 777 /var/www/html/wp-config.php;echo -e "\n/* Remove FTP requirement for plugin updates and templates in WordPress */\ndefine('FS_METHOD','direct');" >> /var/www/html/wp-config.php &&
-echo Increase max file upload size for PHP. Required for large media and backup imports &&
-sudo sed -i.bak -e 's/^upload_max_filesize.*/upload_max_filesize = 512M/g' /etc/php/*/apache2/php.ini &&
-sudo sed -i.bak -e 's/^post_max_size.*/post_max_size = 512M/g' /etc/php/*/apache2/php.ini &&
-sudo sed -i.bak -e 's/^max_execution_time.*/max_execution_time = 300/g' /etc/php/*/apache2/php.ini &&
-sudo sed -i.bak -e 's/^max_input_time.*/max_input_time = 300/g' /etc/php/*/apache2/php.ini &&
-sudo service apache2 restart &&
-echo Configuring WordPress &&
-sudo wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar &&
-sudo chmod +x wp-cli.phar &&
-sudo mv wp-cli.phar /usr/local/bin/wp &&
-cd /var/www/html;sudo -u www-data wp core install --url=$(dig +short myip.opendns.com @resolver1.opendns.com) --title='Blog Title' --admin_user='admin' --admin_password='password' --admin_email='x@y.com' &&
-wp plugin list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp plugin delete % --allow-root &&
-wp theme list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp theme delete % --allow-root &&
-sudo -u www-data wp plugin install all-in-one-wp-migration --activate &&
+#echo Installing WordPress &&
+#sudo apt -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
+#sudo mysql -Bse "CREATE DATABASE IF NOT EXISTS wordpress;CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
+#sudo rm -rf /var/www/html/ && sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html/ && sudo tar xzvf /var/www/html/latest.tar.gz -C /var/www/html &&
+#sudo cp /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php && cd . &&
+#sudo rsync -IavP /var/www/html/wordpress/ /var/www/html/ &&
+#sudo mkdir -p /var/www/html/wp-content/uploads &&
+#sudo chown -R www-data:www-data /var/www &&
+#sudo rm -rf /var/www/html/latest.tar.gz  /var/www/html/wordpress &&
+#sudo sed -i -e 's/database_name_here/wordpress/g' /var/www/html/wp-config.php &&
+#sudo sed -i -e 's/username_here/wordpressuser/g' /var/www/html/wp-config.php &&
+#sudo sed -i -e 's/password_here/password/g' /var/www/html/wp-config.php &&
+#sudo chmod 777 /var/www/html/wp-config.php;echo -e "\n/* Remove FTP requirement for plugin updates and templates in WordPress */\ndefine('FS_METHOD','direct');" >> /var/www/html/wp-config.php &&
+#echo Increase max file upload size for PHP. Required for large media and backup imports &&
+#sudo sed -i.bak -e 's/^upload_max_filesize.*/upload_max_filesize = 512M/g' /etc/php/*/apache2/php.ini &&
+#sudo sed -i.bak -e 's/^post_max_size.*/post_max_size = 512M/g' /etc/php/*/apache2/php.ini &&
+#sudo sed -i.bak -e 's/^max_execution_time.*/max_execution_time = 300/g' /etc/php/*/apache2/php.ini &&
+#sudo sed -i.bak -e 's/^max_input_time.*/max_input_time = 300/g' /etc/php/*/apache2/php.ini &&
+#sudo service apache2 restart &&
+#echo Configuring WordPress &&
+#sudo wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar &&
+#sudo chmod +x wp-cli.phar &&
+#sudo mv wp-cli.phar /usr/local/bin/wp &&
+#cd /var/www/html;sudo -u www-data wp core install --url=$(dig +short myip.opendns.com @resolver1.opendns.com) --title='Blog Title' --admin_user='admin' --admin_password='password' --admin_email='x@y.com' &&
+#wp plugin list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp plugin delete % --allow-root &&
+#wp theme list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp theme delete % --allow-root &&
+#sudo -u www-data wp plugin install all-in-one-wp-migration --activate &&
 
-echo Installing Matomo Analytics Server &&
-sudo apt -y install php-dom php-dom php-xml php-simplexml &&
-sudo apt -y install unzip php-mbstring;sudo service apache2 restart &&
-sudo wget https://builds.matomo.org/matomo.zip -P ~;sudo apt -y install unzip;sudo unzip -oq ~/matomo.zip -d /var/www/html &&
-sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
-sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
-sudo -u www-data wp plugin install matomo --activate &&
-#sudo -u www-data wp plugin install wp-piwik --activate &&
+#echo Installing Matomo Analytics Server &&
+#sudo apt -y install php-dom php-dom php-xml php-simplexml &&
+#sudo apt -y install unzip php-mbstring;sudo service apache2 restart &&
+#sudo wget https://builds.matomo.org/matomo.zip -P ~;sudo apt -y install unzip;sudo unzip -oq ~/matomo.zip -d /var/www/html &&
+#sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
+#sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
+#sudo -u www-data wp plugin install matomo --activate &&
+##sudo -u www-data wp plugin install wp-piwik --activate &&
 
 printf "\nClick on this link to open the default Apache webpage: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
@@ -217,9 +217,9 @@ printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
-printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
-printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/wp-admin\e[0m - You should see the WordPress Dashboard - admin/password\n"
-printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
+#printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
+#printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/wp-admin\e[0m - You should see the WordPress Dashboard - admin/password\n"
+#printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
 echo ********************************
 echo * SUCCESS! - Script completed! *
 echo ********************************
