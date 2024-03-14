@@ -187,7 +187,7 @@ sudo -u www-data wp core download --path=/var/www/html/ &&
 echo Installing required php modules for WordPress... &&
 sudo apt-get -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
 
-echo Configuring WordPress...&&
+echo Configuring WordPress... &&
 sudo mysql -Bse "CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO 'wordpressuser'@'localhost';FLUSH PRIVILEGES;" &&
 sudo -u www-data wp config create --dbname=wordpress --dbuser=wordpressuser --dbpass=password --path=/var/www/html/ &&
 wp db create --path=/var/www/html/ &&
