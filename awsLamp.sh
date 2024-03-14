@@ -191,7 +191,7 @@ echo Configuring WordPress...&&
 sudo mysql -Bse "CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO 'wordpressuser'@'localhost';FLUSH PRIVILEGES;" &&
 sudo -u www-data wp config create --dbname=wordpress --dbuser=wordpressuser --dbpass=password --path=/var/www/html/ &&
 wp db create --path=/var/www/html/
-sudo mysql -Bse "REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'wordpressuser'@'localhost';GRANT ALL PRIVILEGES ON wordpress TO 'wordpressuser'@'localhost';FLUSH PRIVILEGES;" &&
+sudo mysql -Bse "REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'wordpressuser'@'localhost';GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
 sudo mkdir -p /var/www/html/wp-content/uploads &&
 sudo chown -R www-data:www-data /var/www &&
 sudo -u www-data wp config set FS_METHOD direct --raw --type=constant --path=/var/www/html/
