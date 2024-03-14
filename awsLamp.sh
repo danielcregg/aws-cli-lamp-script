@@ -157,8 +157,8 @@ sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.micr
 sudo apt update -qqq > /dev/null &&
 sudo apt install code -qq -y 2>/dev/null &&
 code --install-extension ms-vscode.remote-server 2>/dev/null &&
-sudo code tunnel service install
-sudo code tunnel --no-sleep
+#sudo code tunnel service install
+#sudo code tunnel --no-sleep
 
 echo Installing Adminer silently... &&
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -qqq -y adminer 2>/dev/null &&
@@ -215,9 +215,9 @@ sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDEN
 sudo -u www-data wp plugin install matomo --activate &&
 #sudo -u www-data wp plugin install wp-piwik --activate &&
 
-printf "\nClick on this link to open the default Apache webpage: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
+printf "\nClick on this link to open your website: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
-printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel service install;sudo code tunnel --no-sleep\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
+printf "\nSSH into your new VM (ssh ws) and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel service install;sudo code tunnel --no-sleep\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
