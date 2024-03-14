@@ -132,94 +132,95 @@ echo Trying to SSH into new instance...please hold...
 sleep 10
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
-echo "Successfully SSHed into new instance..." &&
+set -e
+echo "Successfully SSHed into new instance..."
 
-echo "Updating apt repos..." &&
-sudo apt-get -q update &&
+echo "Updating apt repos..."
+sudo apt-get -q update
 
-echo Installing LAMP... &&
-sudo apt-get -qqfy install apache2 mysql-server php &&
+echo Installing LAMP...
+sudo apt-get -qqfy install apache2 mysql-server php
 
-echo Configuring LAMP... &&
-sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
-sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/ &&
-sudo rm -rf /var/www/html/index.html &&
-sudo chown -R www-data:www-data /var/www &&
-sudo systemctl restart apache2 &&
+echo Configuring LAMP...
+sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf
+sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/
+sudo rm -rf /var/www/html/index.html
+sudo chown -R www-data:www-data /var/www
+sudo systemctl restart apache2
 
-echo "Enabling root login for SFTP..." &&
-sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
-sudo echo -e "tester\ntester" | sudo passwd root &&
-sudo systemctl restart sshd &&
+echo Enabling root login for SFTP...
+sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config
+sudo echo -e "tester\ntester" | sudo passwd root
+sudo systemctl restart sshd
 
-echo "Enable Vscode tunnel login via browser..." && 
-sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
-sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
-sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
-sudo apt-get -qq update &&
-sudo apt-get -qqy install code 2>/dev/null &&
-sudo rm -rf packages.microsoft.gpg &&
-code --install-extension ms-vscode.remote-server 2>/dev/null &&
+echo "Enable Vscode tunnel login via browser..." 
+sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list"
+sudo apt-get -qq update
+sudo apt-get -qqy install code 2>/dev/null
+sudo rm -rf packages.microsoft.gpg
+code --install-extension ms-vscode.remote-server 2>/dev/null
 #sudo code tunnel service install
 #sudo code tunnel --no-sleep
 
-echo Installing Adminer silently... &&
-sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null &&
-echo Configuring Andminer &&
-sudo a2enconf adminer && 
-sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;" &&
-sudo systemctl reload apache2 &&
+echo Installing Adminer...
+sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null
+echo Configuring Andminer
+sudo a2enconf adminer
+sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;"
+sudo systemctl reload apache2
 
-echo Install phpmyadmin silently... &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" &&
-sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin &&
+echo Install phpmyadmin...
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'"
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true"
+sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin
 
-echo Installing WordPress... &&
-echo Installing wp-cli... &&
-curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar &&
-chmod +x wp-cli.phar &&
-sudo mv wp-cli.phar /usr/local/bin/wp &&
+echo Installing WordPress...
+echo Installing wp-cli...
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar
+sudo mv wp-cli.phar /usr/local/bin/wp
 
-echo Downloading Wordpress... &&
-sudo -u www-data wp core download --path=/var/www/html/ &&
+echo Downloading Wordpress...
+sudo -u www-data wp core download --path=/var/www/html/
 
-echo Installing required php modules for WordPress... &&
-sudo apt-get -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
+echo Installing required php modules for WordPress...
+sudo apt-get -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl
 
-echo Configuring WordPress... &&
-sudo mysql -Bse "CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO 'wordpressuser'@'localhost';FLUSH PRIVILEGES;" &&
-sudo -u www-data wp config create --dbname=wordpress --dbuser=wordpressuser --dbpass=password --path=/var/www/html/ &&
-wp db create --path=/var/www/html/ &&
-sudo mysql -Bse "REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'wordpressuser'@'localhost';GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
-sudo mkdir -p /var/www/html/wp-content/uploads &&
-sudo chmod 775 /var/www/html/wp-content/uploads &&
-sudo chown www-data:www-data /var/www/html/wp-content/uploads &&
-echo Increase max file upload size for PHP. Required for large media and backup imports &&
-sudo sed -i.bak -e "s/^upload_max_filesize.*/upload_max_filesize = 512M/g" /etc/php/*/apache2/php.ini &&
-sudo sed -i.bak -e "s/^post_max_size.*/post_max_size = 512M/g" /etc/php/*/apache2/php.ini &&
-sudo sed -i.bak -e "s/^max_execution_time.*/max_execution_time = 300/g" /etc/php/*/apache2/php.ini &&
+echo Configuring WordPress...
+sudo mysql -Bse "CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO 'wordpressuser'@'localhost';FLUSH PRIVILEGES;"
+sudo -u www-data wp config create --dbname=wordpress --dbuser=wordpressuser --dbpass=password --path=/var/www/html/
+wp db create --path=/var/www/html/
+sudo mysql -Bse "REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'wordpressuser'@'localhost';GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;"
+sudo mkdir -p /var/www/html/wp-content/uploads
+sudo chmod 775 /var/www/html/wp-content/uploads
+sudo chown www-data:www-data /var/www/html/wp-content/uploads
+echo Increase max file upload size for PHP. Required for large media and backup imports
+sudo sed -i.bak -e "s/^upload_max_filesize.*/upload_max_filesize = 512M/g" /etc/php/*/apache2/php.ini
+sudo sed -i.bak -e "s/^post_max_size.*/post_max_size = 512M/g" /etc/php/*/apache2/php.ini
+sudo sed -i.bak -e "s/^max_execution_time.*/max_execution_time = 300/g" /etc/php/*/apache2/php.ini
 sudo sed -i.bak -e "s/^max_input_time.*/max_input_time = 300/g" /etc/php/*/apache2/php.ini
-sudo service apache2 restart &&
-sudo -u www-data wp core install --url=$(dig +short myip.opendns.com @resolver1.opendns.com) --title="Website Title" --admin_user="admin" --admin_password="password" --admin_email="x@y.com" --path=/var/www/html/ &&
-sudo -u www-data wp plugin list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp plugin delete % --path=/var/www/html/ &&
-sudo -u www-data wp theme list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp theme delete % --path=/var/www/html/ &&
-sudo -u www-data wp plugin install all-in-one-wp-migration --activate --path=/var/www/html/ &&
+sudo service apache2 restart
+sudo -u www-data wp core install --url=$(dig +short myip.opendns.com @resolver1.opendns.com) --title="Website Title" --admin_user="admin" --admin_password="password" --admin_email="x@y.com" --path=/var/www/html/
+sudo -u www-data wp plugin list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp plugin delete % --path=/var/www/html/
+sudo -u www-data wp theme list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp theme delete % --path=/var/www/html/
+sudo -u www-data wp plugin install all-in-one-wp-migration --activate --path=/var/www/html/
 
-echo Installing Matomo Analytics Server &&
-sudo apt-get -qqy install unzip php-dom php-xml php-mbstring &&
-sudo service apache2 restart &&
-sudo wget https://builds.matomo.org/matomo.zip -P /var/www/html/ &&
-sudo unzip -oq /var/www/html/matomo.zip -d /var/www/html/ &&
-sudo rm -rf /var/www/html/matomo.zip &&
-sudo rm -rf /var/www/html/'How to install Matomo.html' &&
-sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
-sudo -u www-data wp plugin install matomo --activate --path=/var/www/html/ &&
-sudo -u www-data wp plugin install wp-piwik --activate --path=/var/www/html/ &&
-sudo -u www-data wp plugin install super-progressive-web-apps --activate --path=/var/www/html/ &&
+echo Installing Matomo Analytics Server
+sudo apt-get -qqy install unzip php-dom php-xml php-mbstring
+sudo service apache2 restart
+sudo wget https://builds.matomo.org/matomo.zip -P /var/www/html/
+sudo unzip -oq /var/www/html/matomo.zip -d /var/www/html/
+sudo rm -rf /var/www/html/matomo.zip
+sudo rm -rf /var/www/html/'How to install Matomo.html'
+sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;"
+sudo -u www-data wp plugin install matomo --activate --path=/var/www/html/
+sudo -u www-data wp plugin install wp-piwik --activate --path=/var/www/html/
+sudo -u www-data wp plugin install super-progressive-web-apps --activate --path=/var/www/html/
 
 printf "\nClick on this link to open your website: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
