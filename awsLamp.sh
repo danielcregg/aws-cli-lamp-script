@@ -161,7 +161,7 @@ code --install-extension ms-vscode.remote-server 2>/dev/null &&
 #sudo code tunnel --no-sleep
 
 echo Installing Adminer silently... &&
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -qqq -y adminer 2>/dev/null &&
+sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null &&
 echo Configuring Andminer &&
 sudo a2enconf adminer && 
 sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;" &&
