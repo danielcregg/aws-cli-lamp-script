@@ -142,37 +142,38 @@ echo Configuring LAMP... &&
 sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf &&
 sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/ &&
 sudo rm -rf /var/www/html/index.html &&
+sudo chown -R www-data:www-data /var/www &&
 sudo systemctl restart apache2
 
-echo "Enabling root login for SFTP..." &&
-sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
-sudo echo -e "tester\ntester" | sudo passwd root &&
-sudo systemctl restart sshd &&
+#echo "Enabling root login for SFTP..." &&
+#sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
+#sudo echo -e "tester\ntester" | sudo passwd root &&
+#sudo systemctl restart sshd &&
 
-echo "Enable Vscode tunnel login via browser..." && 
-sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
-sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
-sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
-sudo apt update -qqq > /dev/null &&
-sudo apt install code -qq -y 2>/dev/null &&
-code --install-extension ms-vscode.remote-server 2>/dev/null &&
+#echo "Enable Vscode tunnel login via browser..." && 
+#sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
+#sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
+#sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
+#sudo apt update -qqq > /dev/null &&
+#sudo apt install code -qq -y 2>/dev/null &&
+#code --install-extension ms-vscode.remote-server 2>/dev/null &&
 #sudo code tunnel service install
 #sudo code tunnel --no-sleep
 
-echo Installing Adminer silently... &&
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -qqq -y adminer 2>/dev/null &&
-echo Configuring Andminer &&
-sudo a2enconf adminer && 
-sudo systemctl reload apache2 &&
-sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;" &&
+#echo Installing Adminer silently... &&
+#sudo DEBIAN_FRONTEND=noninteractive apt-get install -qqq -y adminer 2>/dev/null &&
+#echo Configuring Andminer &&
+#sudo a2enconf adminer && 
+#sudo systemctl reload apache2 &&
+#sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;" &&
 
-echo Install phpmyadmin silently... &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'" &&
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" &&
-sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin &&
+#echo Install phpmyadmin silently... &&
+#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" &&
+#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true" &&
+#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'" &&
+#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'" &&
+#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" &&
+#sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin &&
 
 echo Installing WordPress... &&
 echo Installing wp-cli... &&
