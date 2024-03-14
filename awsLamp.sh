@@ -182,7 +182,7 @@ chmod +x wp-cli.phar &&
 sudo mv wp-cli.phar /usr/local/bin/wp &&
 
 echo Downloading Wordpress... &&
-sudo -u www-data wp core download --path=/var/www/html &&
+sudo -u www-data wp core download --path=/var/www/html/ &&
 
 echo Installing required php modules for WordPress... &&
 sudo apt -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
