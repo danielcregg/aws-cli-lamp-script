@@ -121,7 +121,7 @@ aws ec2 associate-address \
     --instance-id $INSTANCE_ID \
     --public-ip $ELASTIC_IP > /dev/null
 
-echo "Host ws
+echo "Host vm
     HostName $ELASTIC_IP
     User ubuntu
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
@@ -194,6 +194,8 @@ sudo -u www-data wp config create --dbname=wordpress --dbuser=wordpressuser --db
 wp db create --path=/var/www/html/ &&
 sudo mysql -Bse "REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'wordpressuser'@'localhost';GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
 sudo mkdir -p /var/www/html/wp-content/uploads &&
+sudo chmod 775 /var/www/html/wp-content/uploads &&
+sudo chown www-data:www-data /var/www/html/wp-content/uploads &&
 echo Increase max file upload size for PHP. Required for large media and backup imports &&
 sudo sed -i.bak -e "s/^upload_max_filesize.*/upload_max_filesize = 512M/g" /etc/php/*/apache2/php.ini &&
 sudo sed -i.bak -e "s/^post_max_size.*/post_max_size = 512M/g" /etc/php/*/apache2/php.ini &&
