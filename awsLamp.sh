@@ -206,7 +206,7 @@ sudo -u www-data wp theme list --status=inactive --field=name --path=/var/www/ht
 sudo -u www-data wp plugin install all-in-one-wp-migration --activate --path=/var/www/html/ &&
 
 echo Installing Matomo Analytics Server &&
-sudo apt -y install unzip php-dom php-xml php-mbstring &&
+sudo apt-get -qqy install unzip php-dom php-xml php-mbstring &&
 sudo service apache2 restart &&
 sudo wget https://builds.matomo.org/matomo.zip -P /var/www/html/ &&
 sudo unzip -oq /var/www/html/matomo.zip -d /var/www/html/ &&
