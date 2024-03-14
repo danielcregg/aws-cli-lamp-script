@@ -194,7 +194,6 @@ sudo -u www-data wp config create --dbname=wordpress --dbuser=wordpressuser --db
 wp db create --path=/var/www/html/ &&
 sudo mysql -Bse "REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'wordpressuser'@'localhost';GRANT ALL PRIVILEGES ON wordpress.* TO wordpressuser@localhost;FLUSH PRIVILEGES;" &&
 sudo mkdir -p /var/www/html/wp-content/uploads &&
-sudo -u www-data wp config set FS_METHOD 'direct' --raw --type=constant --path=/var/www/html/ &&
 echo Increase max file upload size for PHP. Required for large media and backup imports &&
 sudo sed -i.bak -e "s/^upload_max_filesize.*/upload_max_filesize = 512M/g" /etc/php/*/apache2/php.ini &&
 sudo sed -i.bak -e "s/^post_max_size.*/post_max_size = 512M/g" /etc/php/*/apache2/php.ini &&
