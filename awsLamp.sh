@@ -145,35 +145,35 @@ sudo rm -rf /var/www/html/index.html &&
 sudo chown -R www-data:www-data /var/www &&
 sudo systemctl restart apache2
 
-#echo "Enabling root login for SFTP..." &&
-#sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
-#sudo echo -e "tester\ntester" | sudo passwd root &&
-#sudo systemctl restart sshd &&
+echo "Enabling root login for SFTP..." &&
+sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
+sudo echo -e "tester\ntester" | sudo passwd root &&
+sudo systemctl restart sshd &&
 
-#echo "Enable Vscode tunnel login via browser..." && 
-#sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
-#sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
-#sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
-#sudo apt update -qqq > /dev/null &&
-#sudo apt install code -qq -y 2>/dev/null &&
-#code --install-extension ms-vscode.remote-server 2>/dev/null &&
-#sudo code tunnel service install
-#sudo code tunnel --no-sleep
+echo "Enable Vscode tunnel login via browser..." && 
+sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg &&
+sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ &&
+sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list" &&
+sudo apt update -qqq > /dev/null &&
+sudo apt install code -qq -y 2>/dev/null &&
+code --install-extension ms-vscode.remote-server 2>/dev/null &&
+sudo code tunnel service install
+sudo code tunnel --no-sleep
 
-#echo Installing Adminer silently... &&
-#sudo DEBIAN_FRONTEND=noninteractive apt-get install -qqq -y adminer 2>/dev/null &&
-#echo Configuring Andminer &&
-#sudo a2enconf adminer && 
-#sudo systemctl reload apache2 &&
-#sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;" &&
+echo Installing Adminer silently... &&
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -qqq -y adminer 2>/dev/null &&
+echo Configuring Andminer &&
+sudo a2enconf adminer && 
+sudo systemctl reload apache2 &&
+sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;" &&
 
-#echo Install phpmyadmin silently... &&
-#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" &&
-#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true" &&
-#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'" &&
-#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'" &&
-#sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" &&
-#sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin &&
+echo Install phpmyadmin silently... &&
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" &&
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true" &&
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'" &&
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'" &&
+sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" &&
+sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin &&
 
 echo Installing WordPress... &&
 echo Installing wp-cli... &&
@@ -206,14 +206,14 @@ wp plugin list --status=inactive --field=name --allow-root | xargs --replace=% s
 wp theme list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp theme delete % --allow-root &&
 sudo -u www-data wp plugin install all-in-one-wp-migration --activate &&
 
-#echo Installing Matomo Analytics Server &&
-#sudo apt -y install php-dom php-dom php-xml php-simplexml &&
-#sudo apt -y install unzip php-mbstring;sudo service apache2 restart &&
-#sudo wget https://builds.matomo.org/matomo.zip -P ~;sudo apt -y install unzip;sudo unzip -oq ~/matomo.zip -d /var/www/html &&
-#sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
-#sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
-#sudo -u www-data wp plugin install matomo --activate &&
-##sudo -u www-data wp plugin install wp-piwik --activate &&
+echo Installing Matomo Analytics Server &&
+sudo apt -y install php-dom php-dom php-xml php-simplexml &&
+sudo apt -y install unzip php-mbstring;sudo service apache2 restart &&
+sudo wget https://builds.matomo.org/matomo.zip -P ~;sudo apt -y install unzip;sudo unzip -oq ~/matomo.zip -d /var/www/html &&
+sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
+sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
+sudo -u www-data wp plugin install matomo --activate &&
+#sudo -u www-data wp plugin install wp-piwik --activate &&
 
 printf "\nClick on this link to open the default Apache webpage: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
@@ -221,9 +221,9 @@ printf "\nSSH into your new VM  and run this command to open a VS Code tunnel:  
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
 printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
 printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
-#printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
-#printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/wp-admin\e[0m - You should see the WordPress Dashboard - admin/password\n"
-#printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
+printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
+printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/wp-admin\e[0m - You should see the WordPress Dashboard - admin/password\n"
+printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
 echo ********************************
 echo * SUCCESS! - Script completed! *
 echo ********************************
