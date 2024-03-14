@@ -164,8 +164,8 @@ echo Installing Adminer silently... &&
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -qqq -y adminer 2>/dev/null &&
 echo Configuring Andminer &&
 sudo a2enconf adminer && 
-sudo systemctl reload apache2 &&
 sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;" &&
+sudo systemctl reload apache2 &&
 
 echo Install phpmyadmin silently... &&
 sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" &&
@@ -185,7 +185,7 @@ echo Downloading Wordpress... &&
 sudo -u www-data wp core download --path=/var/www/html/ &&
 
 echo Installing required php modules for WordPress... &&
-sudo apt -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
+sudo apt-get -qq -y install php-mysql php-gd php-curl php-dom php-imagick php-mbstring php-zip php-intl &&
 
 echo Configuring WordPress...&&
 sudo mysql -Bse "CREATE USER IF NOT EXISTS wordpressuser@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO 'wordpressuser'@'localhost';FLUSH PRIVILEGES;" &&
