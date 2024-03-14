@@ -143,7 +143,7 @@ sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php ind
 sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/ &&
 sudo rm -rf /var/www/html/index.html &&
 sudo chown -R www-data:www-data /var/www &&
-sudo systemctl restart apache2
+sudo systemctl restart apache2 &&
 
 echo "Enabling root login for SFTP..." &&
 sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config &&
@@ -207,9 +207,11 @@ wp theme list --status=inactive --field=name --allow-root | xargs --replace=% su
 sudo -u www-data wp plugin install all-in-one-wp-migration --activate &&
 
 echo Installing Matomo Analytics Server &&
-sudo apt -y install php-dom php-dom php-xml php-simplexml &&
-sudo apt -y install unzip php-mbstring;sudo service apache2 restart &&
-sudo wget https://builds.matomo.org/matomo.zip -P ~;sudo apt -y install unzip;sudo unzip -oq ~/matomo.zip -d /var/www/html &&
+sudo apt -y install unzip php-dom php-xml php-mbstring &&
+sudo service apache2 restart &&
+sudo wget https://builds.matomo.org/matomo.zip -P /var/www/html/ &&
+sudo unzip -oq /var/www/html/matomo.zip -d /var/www/html/ &&
+sudo rm -rf /var/www/html/matomo.zip "How to install Matomo.html" &&
 sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
 sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
 sudo -u www-data wp plugin install matomo --activate &&
