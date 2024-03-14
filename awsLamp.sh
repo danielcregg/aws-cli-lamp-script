@@ -214,8 +214,8 @@ sudo rm -rf /var/www/html/matomo.zip &&
 sudo rm -rf /var/www/html/'How to install Matomo.html' &&
 sudo chown -R www-data:www-data /var/www/html/matomo;sudo chmod -R 0755 /var/www/html/matomo/tmp &&
 sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;" &&
-sudo -u www-data wp plugin install matomo --activate &&
-sudo -u www-data wp plugin install wp-piwik --activate &&
+sudo -u www-data wp plugin install matomo --activate --path=/var/www/html/ &&
+sudo -u www-data wp plugin install wp-piwik --activate --path=/var/www/html/ &&
 
 printf "\nClick on this link to open your website: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
