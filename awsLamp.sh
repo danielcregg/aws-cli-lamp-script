@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INSTALL_WORDPRESS=false
-INSTALL_MATOMO=false
+INSTALL_DB=false
 
 # Parse command line arguments
 for arg in "$@"
@@ -11,8 +11,8 @@ do
         INSTALL_WORDPRESS=true
         shift
         ;;
-        -mt)
-        INSTALL_MATOMO=true
+        -db)
+        INSTALL_DB=true
         shift
         ;;
     esac
@@ -184,20 +184,23 @@ code --install-extension ms-vscode.remote-server 2>/dev/null
 #sudo code tunnel service install
 #sudo code tunnel --no-sleep
 
-echo Installing Adminer...
-sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null
-echo Configuring Andminer
-sudo a2enconf adminer
-sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;"
-sudo systemctl reload apache2
+# Install DB tools if requested
+if [ '$INSTALL_DB' = true ]; then
+    echo Installing Adminer...
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null
+    echo Configuring Andminer
+    sudo a2enconf adminer
+    sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;"
+    sudo systemctl reload apache2
 
-echo Install phpmyadmin...
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true"
-sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin
+    echo Install phpmyadmin...
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true"
+    sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin
+fi
 
 # Install WordPress if requested
 if [ '$INSTALL_WORDPRESS' = true ]; then
@@ -248,8 +251,10 @@ fi
 printf "\nClick on this link to open your website: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
 printf "\nSSH into your new VM (ssh ws) and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel service install;sudo code tunnel --no-sleep\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
-printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
-printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
+if [ '$INSTALL_DB' = true ]; then    
+    printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
+    printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
+fi
 printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
 if [ '$INSTALL_WORDPRESS' = true ]; then
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
