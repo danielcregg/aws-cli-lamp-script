@@ -231,10 +231,7 @@ if [ '$INSTALL_WORDPRESS' = true ]; then
     sudo -u www-data wp plugin list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp plugin delete % --path=/var/www/html/
     sudo -u www-data wp theme list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp theme delete % --path=/var/www/html/
     sudo -u www-data wp plugin install all-in-one-wp-migration --activate --path=/var/www/html/
-fi
 
-# Install Matomo if requested
-if [ '$INSTALL_MATOMO' = true ]; then
     echo Installing Matomo Analytics Server
     sudo apt-get -qqy install unzip php-dom php-xml php-mbstring
     sudo service apache2 restart
@@ -257,8 +254,6 @@ printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
 if [ '$INSTALL_WORDPRESS' = true ]; then
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/wp-admin\e[0m - You should see the WordPress Dashboard - admin/password\n"
-fi
-if [ '$INSTALL_MATOMO' = true ]; then
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
 fi
 echo ********************************
