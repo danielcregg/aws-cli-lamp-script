@@ -201,9 +201,9 @@ sudo sed -i.bak -e 's/^max_execution_time.*/max_execution_time = 300/g' /etc/php
 sudo sed -i.bak -e 's/^max_input_time.*/max_input_time = 300/g' /etc/php/*/apache2/php.ini &&
 sudo service apache2 restart &&
 sudo -u www-data wp core install --url=$(dig +short myip.opendns.com @resolver1.opendns.com) --title='Website Title' --admin_user='admin' --admin_password='password' --admin_email='x@y.com' --path=/var/www/html/ &&
-wp plugin list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp plugin delete % --allow-root &&
-wp theme list --status=inactive --field=name --allow-root | xargs --replace=% sudo -u www-data wp theme delete % --allow-root &&
-sudo -u www-data wp plugin install all-in-one-wp-migration --activate &&
+sudo -u wp plugin list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp plugin delete % --path=/var/www/html/ &&
+sudo -u wp theme list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp theme delete % --path=/var/www/html/ &&
+sudo -u www-data wp plugin install all-in-one-wp-migration --activate --path=/var/www/html/ &&
 
 echo Installing Matomo Analytics Server &&
 sudo apt -y install unzip php-dom php-xml php-mbstring &&
