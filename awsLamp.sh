@@ -288,6 +288,7 @@ if [ '$INSTALL_MATOMO' = true ]; then
     sudo service apache2 restart
     sudo wget https://builds.matomo.org/matomo.zip -P /var/www/html/
     sudo unzip -oq /var/www/html/matomo.zip -d /var/www/html/
+    sudo chown -R www-data:www-data /var/www/html/matomo
     sudo rm -rf /var/www/html/matomo.zip
     sudo rm -rf /var/www/html/'How to install Matomo.html'
     sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;"
@@ -316,7 +317,7 @@ fi
 if [ '$INSTALL_MATOMO' = true ]; then
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
 fi
-printf "\nYou can ssh into your new VM on this Cloud Shell using... \e[3;4;33mssh ws\e[0m\n"
+printf "\nYou can ssh into your new VM on this Cloud Shell using... \e[3;4;33mssh vm\e[0m\n"
 echo ********************************
 echo * SUCCESS! - Script completed! *
 echo ********************************
