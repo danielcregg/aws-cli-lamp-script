@@ -53,10 +53,6 @@ do
     esac
 done
 
-# This script is designed to be run in AWS CloudShell. Here are two bash different commands to run this script:
-# bash <(curl -sL tinyurl.com/awsLamp)
-# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
-
 # This script is designed to be run in AWS CloudShell. Here are two bash differnet commands to run this script:
 # bash <(curl -sL tinyurl.com/awsLamp)
 # bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
