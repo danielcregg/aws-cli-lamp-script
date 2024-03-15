@@ -1,5 +1,9 @@
 #!/bin/bash
 
+INSTALL_LAMP=false
+INSTALL_SFTP=false
+INSTALL_VSCODE=false
+INSTALL_DB=false
 INSTALL_WORDPRESS=false
 INSTALL_MATOMO=false
 
@@ -7,11 +11,42 @@ INSTALL_MATOMO=false
 for arg in "$@"
 do
     case $arg in
+        -lamp)
+        INSTALL_LAMP=true
+        shift
+        ;;
+        -sftp)
+        INSTALL_LAMP=true
+        INSTALL_SFTP=true
+        shift
+        ;;
+        -vscode)
+        INSTALL_LAMP=true
+        INSTALL_SFTP=true
+        INSTALL_VSCODE=true
+        shift
+        ;;
+        -db)
+        INSTALL_LAMP=true
+        INSTALL_SFTP=true
+        INSTALL_VSCODE=true
+        INSTALL_DB=true
+        shift
+        ;;
         -wp)
+        INSTALL_LAMP=true
+        INSTALL_SFTP=true
+        INSTALL_VSCODE=true
+        INSTALL_DB=true
         INSTALL_WORDPRESS=true
         shift
         ;;
         -mt)
+        INSTALL_LAMP=true
+        INSTALL_SFTP=true
+        INSTALL_VSCODE=true
+        INSTALL_DB=true
+        INSTALL_WORDPRESS=true
         INSTALL_MATOMO=true
         shift
         ;;
@@ -155,49 +190,58 @@ ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 set -e
 echo "Successfully SSHed into new instance..."
 
-echo "Updating apt repos..."
-sudo apt-get -q update
+if [ '$INSTALL_LAMP' = true ]; then
+    echo "Updating apt repos..."
+    sudo apt-get -q update
 
-echo Installing LAMP...
-sudo apt-get -qqfy install apache2 mysql-server php
+    echo Installing LAMP...
+    sudo apt-get -qqfy install apache2 mysql-server php
 
-echo Configuring LAMP...
-sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf
-sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/
-sudo rm -rf /var/www/html/index.html
-sudo chown -R www-data:www-data /var/www
-sudo systemctl restart apache2
+    echo Configuring LAMP...
+    sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf
+    sudo wget https://raw.githubusercontent.com/danielcregg/simple-php-website/main/index.php -P /var/www/html/
+    sudo rm -rf /var/www/html/index.html
+    sudo chown -R www-data:www-data /var/www
+    sudo systemctl restart apache2
+fi
 
-echo Enabling root login for SFTP...
-sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config
-sudo echo -e "tester\ntester" | sudo passwd root
-sudo systemctl restart sshd
+if [ '$INSTALL_SFTP' = true ]; then
+    echo Enabling root login for SFTP...
+    sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config
+    sudo echo -e "tester\ntester" | sudo passwd root
+    sudo systemctl restart sshd
+fi
 
-echo "Enable Vscode tunnel login via browser..." 
-sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list"
-sudo apt-get -qq update
-sudo apt-get -qqy install code 2>/dev/null
-sudo rm -rf packages.microsoft.gpg
-code --install-extension ms-vscode.remote-server 2>/dev/null
-#sudo code tunnel service install
-#sudo code tunnel --no-sleep
+if [ '$INSTALL_VSCODE' = true ]; then
+    echo "Enable Vscode tunnel login via browser..." 
+    sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+    sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+    sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list"
+    sudo apt-get -qq update
+    sudo apt-get -qqy install code 2>/dev/null
+    sudo rm -rf packages.microsoft.gpg
+    code --install-extension ms-vscode.remote-server 2>/dev/null
+    #sudo code tunnel service install
+    #sudo code tunnel --no-sleep
+fi
 
-echo Installing Adminer...
-sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null
-echo Configuring Andminer
-sudo a2enconf adminer
-sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;"
-sudo systemctl reload apache2
+# Install DB tools if requested
+if [ '$INSTALL_DB' = true ]; then
+    echo Installing Adminer...
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null
+    echo Configuring Andminer
+    sudo a2enconf adminer
+    sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;"
+    sudo systemctl reload apache2
 
-echo Install phpmyadmin...
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'"
-sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true"
-sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin
+    echo Install phpmyadmin...
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'password'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'password'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true"
+    sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin
+fi
 
 # Install WordPress if requested
 if [ '$INSTALL_WORDPRESS' = true ]; then
@@ -231,12 +275,16 @@ if [ '$INSTALL_WORDPRESS' = true ]; then
     sudo -u www-data wp plugin list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp plugin delete % --path=/var/www/html/
     sudo -u www-data wp theme list --status=inactive --field=name --path=/var/www/html/ | xargs --replace=% sudo -u www-data wp theme delete % --path=/var/www/html/
     sudo -u www-data wp plugin install all-in-one-wp-migration --activate --path=/var/www/html/
+fi
 
+# Install Matomo if requested
+if [ '$INSTALL_MATOMO' = true ]; then
     echo Installing Matomo Analytics Server
     sudo apt-get -qqy install unzip php-dom php-xml php-mbstring
     sudo service apache2 restart
     sudo wget https://builds.matomo.org/matomo.zip -P /var/www/html/
     sudo unzip -oq /var/www/html/matomo.zip -d /var/www/html/
+    sudo chown -R www-data:www-data /var/www/html/matomo
     sudo rm -rf /var/www/html/matomo.zip
     sudo rm -rf /var/www/html/'How to install Matomo.html'
     sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;"
@@ -245,17 +293,27 @@ if [ '$INSTALL_WORDPRESS' = true ]; then
     sudo -u www-data wp plugin install super-progressive-web-apps --activate --path=/var/www/html/
 fi
 
-printf "\nClick on this link to open your website: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
-printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
-printf "\nSSH into your new VM (ssh ws) and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel service install;sudo code tunnel --no-sleep\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
-printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
-printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
-printf "\nYou can log into your new VM using... \e[3;4;33mssh ws\e[0m\n"
+if [ '$INSTALL_LAMP' = true ]; then
+    printf "\nClick on this link to open your website: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
+fi
+if [ '$INSTALL_SFTP' = true ]; then
+    printf "\nClick on this link to download WinSCP \e[3;4;33mhttps://dcus.short.gy/downloadWinSCP\e[0m - Note: User name = root and password = tester\n"
+fi
+if [ '$INSTALL_VSCODE' = true ]; then
+    printf "\nSSH into your new VM (ssh vm) and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
+fi
+if [ '$INSTALL_DB' = true ]; then    
+    printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
+    printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/phpmyadmin\e[0m - You should see the phpMyAdmin login page. admin/password\n"
+fi
 if [ '$INSTALL_WORDPRESS' = true ]; then
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m - You should see the WordPress page.\n" &&
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/wp-admin\e[0m - You should see the WordPress Dashboard - admin/password\n"
+fi
+if [ '$INSTALL_MATOMO' = true ]; then
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
 fi
+printf "\nYou can ssh into your new VM on this Cloud Shell using... \e[3;4;33mssh vm\e[0m\n"
 echo ********************************
 echo * SUCCESS! - Script completed! *
 echo ********************************
