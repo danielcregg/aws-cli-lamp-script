@@ -10,4 +10,6 @@ This is an AWS CLI script to create an ubuntu LAMP server. This script is meant 
 bash <(curl -sL tinyurl.com/awsLamp)
 ```
 
-This script should take about 3 minutes to complete.
+This script should take about 5 minutes to complete.
+
+Optional flags: -lamp -sftp -vscode -db -wp -mt
