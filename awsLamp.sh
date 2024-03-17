@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# This script is designed to be run in AWS CloudShell. Here are two bash differnet commands to run this script:
+# bash <(curl -sL tinyurl.com/awsLamp)
+# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
+# for the latest builds run below
+# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/dev-branch/awsLamp.sh)
+
+# The following variables are used to determine what to install
 INSTALL_LAMP=false
 INSTALL_SFTP=false
 INSTALL_VSCODE=false
@@ -7,7 +14,12 @@ INSTALL_DB=false
 INSTALL_WORDPRESS=false
 INSTALL_MATOMO=false
 
-# Parse command line arguments
+# Parse command line arguments. If no arguments are provided, the script will only install LAMP.
+# -lamp: Install LAMP
+# -sftp: Install LAMP and enable root login for SFTP
+# -vscode: Install LAMP, enable root login for SFTP and install VS Code
+# -db: Install LAMP, enable root login for SFTP, install VS Code and install Adminer and phpMyAdmin
+# -wp: Install LAMP, enable root login for SFTP, install VS Code, install Adminer and phpMyAdmin and install WordPress
 for arg in "$@"
 do
     case $arg in
@@ -53,11 +65,6 @@ do
     esac
 done
 
-# This script is designed to be run in AWS CloudShell. Here are two bash differnet commands to run this script:
-# bash <(curl -sL tinyurl.com/awsLamp)
-# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
-# for the latest builds run below
-# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/dev-branch/awsLamp.sh)
 echo Cleaning up old resources...
 # Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
 EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
