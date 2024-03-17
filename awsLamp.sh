@@ -65,7 +65,7 @@ do
     esac
 done
 
-echo Cleaning up old resources...
+printf "\e[3;4;31mCleaning up old resources...\e[0m\n"
 # Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
 EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
     --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
@@ -108,19 +108,19 @@ if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
   sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
 fi
 
-echo Creating new security group...
+printf "\e[3;4;31mCreating new security group...\e[0m\n"
 SG_ID=$(aws ec2 create-security-group \
     --group-name webServerSecurityGroup \
     --description "Web Server security group" \
     --output text)
 
-echo Opening required ports i.e. SSH, HTTP, HTTPS and RDP...
+printf "\e[3;4;31mOpening required ports i.e. SSH, HTTP, HTTPS and RDP...\e[0m\n"
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
 
-echo Creating new key pair...
+printf "\e[3;4;31mCreating new key pair...\e[0m\n"
 mkdir -p ~/.ssh
 aws ec2 create-key-pair \
     --key-name key_WebServerAuto \
@@ -128,7 +128,7 @@ aws ec2 create-key-pair \
     --output text > ~/.ssh/key_WebServerAuto  
 chmod 600 ~/.ssh/key_WebServerAuto
 
-echo Finding the latest Ubuntu Server Linux AMI in the current region...
+printf "\e[3;4;31mFinding the latest Ubuntu Server Linux AMI in the current region...\e[0m\n"
 aws ec2 describe-images \
     --owners 099720109477 \
     --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
@@ -138,6 +138,7 @@ aws ec2 describe-images \
     --query 'sort_by(Images, &CreationDate)[-1].Description' \
     --output text
 
+# Print the latest Ubuntu Server Linux version details
 AMI_ID=$(aws ec2 describe-images \
     --owners 099720109477 \
     --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
