@@ -229,8 +229,8 @@ if [ '$INSTALL_VSCODE' = true ]; then
     sudo apt-get -qqy install code 2>/dev/null
     sudo rm -rf packages.microsoft.gpg
     code --install-extension ms-vscode.remote-server 2>/dev/null
-    #code tunnel service install
-    #sudo code tunnel --no-sleep
+    #code tunnel service --accept-server-license-terms
+    #cd /var/www/html/;sudo code tunnel --accept-server-license-terms --no-sleep
 fi
 
 # Install DB tools if requested
