@@ -316,6 +316,7 @@ if [ '$INSTALL_SFTP' = true ]; then
 fi
 if [ '$INSTALL_VSCODE' = true ]; then
     printf "\nSSH into your new VM (ssh vm) and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
+    printf "\nYou can also access VS Code online version by visiting:  \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com):8080\e[0m \n"
 fi
 if [ '$INSTALL_DB' = true ]; then    
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
