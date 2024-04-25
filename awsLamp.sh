@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# This script is designed to be run in AWS CloudShell. Here are two bash differnet commands to run this script:
+# bash <(curl -sL tinyurl.com/awsLamp)
+# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
+# for the latest builds run below
+# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/dev-branch/awsLamp.sh)
+
+# The following variables are used to determine what to install
 INSTALL_LAMP=false
 INSTALL_SFTP=false
 INSTALL_VSCODE=false
@@ -7,7 +14,12 @@ INSTALL_DB=false
 INSTALL_WORDPRESS=false
 INSTALL_MATOMO=false
 
-# Parse command line arguments
+# Parse command line arguments. If no arguments are provided, the script will only install LAMP.
+# -lamp: Install LAMP
+# -sftp: Install LAMP and enable root login for SFTP
+# -vscode: Install LAMP, enable root login for SFTP and install VS Code
+# -db: Install LAMP, enable root login for SFTP, install VS Code and install Adminer and phpMyAdmin
+# -wp: Install LAMP, enable root login for SFTP, install VS Code, install Adminer and phpMyAdmin and install WordPress
 for arg in "$@"
 do
     case $arg in
@@ -53,12 +65,7 @@ do
     esac
 done
 
-# This script is designed to be run in AWS CloudShell. Here are two bash differnet commands to run this script:
-# bash <(curl -sL tinyurl.com/awsLamp)
-# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
-# for the latest builds run below
-# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/dev-branch/awsLamp.sh)
-echo Cleaning up old resources...
+printf "\e[3;4;31mCleaning up old resources...\e[0m\n"
 # Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
 EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
     --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
@@ -101,19 +108,20 @@ if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
   sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
 fi
 
-echo Creating new security group...
+printf "\e[3;4;31mCreating new security group...\e[0m\n"
 SG_ID=$(aws ec2 create-security-group \
     --group-name webServerSecurityGroup \
     --description "Web Server security group" \
     --output text)
 
-echo Opening required ports i.e. SSH, HTTP, HTTPS and RDP...
+printf "\e[3;4;31mOpening required ports i.e. SSH, HTTP, HTTPS and RDP...\e[0m\n"
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0 > /dev/null
 
-echo Creating new key pair...
+printf "\e[3;4;31mCreating new key pair...\e[0m\n"
 mkdir -p ~/.ssh
 aws ec2 create-key-pair \
     --key-name key_WebServerAuto \
@@ -121,7 +129,7 @@ aws ec2 create-key-pair \
     --output text > ~/.ssh/key_WebServerAuto  
 chmod 600 ~/.ssh/key_WebServerAuto
 
-echo Finding the latest Ubuntu Server Linux AMI in the current region...
+printf "\e[3;4;31mFinding the latest Ubuntu Server Linux AMI in the current region...\e[0m\n"
 aws ec2 describe-images \
     --owners 099720109477 \
     --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
@@ -131,6 +139,7 @@ aws ec2 describe-images \
     --query 'sort_by(Images, &CreationDate)[-1].Description' \
     --output text
 
+# Print the latest Ubuntu Server Linux version details
 AMI_ID=$(aws ec2 describe-images \
     --owners 099720109477 \
     --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
@@ -221,8 +230,14 @@ if [ '$INSTALL_VSCODE' = true ]; then
     sudo apt-get -qqy install code 2>/dev/null
     sudo rm -rf packages.microsoft.gpg
     code --install-extension ms-vscode.remote-server 2>/dev/null
-    #sudo code tunnel service install
-    #sudo code tunnel --no-sleep
+    # local code-server install
+    sudo apt-get install -y build-essential
+    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    sudo npm install -g code-server --unsafe-perm
+    sudo nohup code-server --auth none --bind-addr 0.0.0.0:8080 /var/www/html &
+    #code tunnel service --accept-server-license-terms
+    #cd /var/www/html/;sudo code tunnel --accept-server-license-terms --no-sleep
 fi
 
 # Install DB tools if requested
@@ -301,6 +316,7 @@ if [ '$INSTALL_SFTP' = true ]; then
 fi
 if [ '$INSTALL_VSCODE' = true ]; then
     printf "\nSSH into your new VM (ssh vm) and run this command to open a VS Code tunnel:  \e[3;4;33msudo code tunnel\e[0m - Follow the instructions in the terminal to connect to VS code via the browser.\n"
+    printf "\nYou can also access VS Code online version by visiting:  \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com):8080\e[0m \n"
 fi
 if [ '$INSTALL_DB' = true ]; then    
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/adminer/?username=admin\e[0m - You should see the Adminer Login page. Username is admin and password is password. Leave Database empty.\n"
