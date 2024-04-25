@@ -65,18 +65,17 @@ do
     esac
 done
 
-printf "\e[3;4;31mCleaning up old resources...\e[0m\n"
-# Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
-EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
-    --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
-    --query 'Tags[*].ResourceId' \
-    --output text)
+# Find an Elastic IP with the tag 'elasticIPWebServerAuto' (assumes only one result)
+ELASTIC_IP=$(aws ec2 describe-addresses \
+               --filters "Name=tag:Name,Values=elasticIPWebServerAuto" \
+               --query 'Addresses[0]' \
+               --output json) 
 
-# If there are any Elastic IPs with the tag name "WebServerPublicIPAuto", release them
-for ALLOCATION_ID in $EXISTING_ELASTIC_IP_ALLOCATION_IDS
-do
-  aws ec2 release-address --allocation-id $ALLOCATION_ID
-done
+# Check if ELASTIC_IP variable is not empty and disassociate if found
+if [[ -n $ELASTIC_IP ]]; then
+    ASSOCIATION_ID=$(echo $ELASTIC_IP | jq -r '.AssociationId')
+    aws ec2 disassociate-address --association-id $ASSOCIATION_ID
+fi
 
 # Get the IDs of the instances with the name "myWebServerAuto"
 EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
@@ -89,17 +88,6 @@ if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
   aws ec2 terminate-instances --instance-ids $EXISTING_INSTANCE_IDS > /dev/null
   # Waiting for instance to be terminated...
   aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
-fi
-
-# Get the ID of the security group if it exists
-EXISTING_SG_ID=$(aws ec2 describe-security-groups \
-    --group-names webServerSecurityGroup \
-    --query 'SecurityGroups[0].GroupId' \
-    --output text 2>/dev/null)
-
-# If the security group exists, delete it
-if [ "$EXISTING_SG_ID" != "" ]; then
-  aws ec2 delete-security-group --group-id $EXISTING_SG_ID
 fi
 
 # Check if a key pair exists and if so delete it
