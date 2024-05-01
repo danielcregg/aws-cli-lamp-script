@@ -89,7 +89,7 @@ else
 fi
 
 # Get the IDs of the instances with the name "myWebServerAuto"
-echo "Looking for old instance if they exist..."
+echo "Looking for old instance..."
 EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
     --filters "Name=tag:Name,Values=myWebServerAuto" \
     --query 'Reservations[*].Instances[*].InstanceId' \
