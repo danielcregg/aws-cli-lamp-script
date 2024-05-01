@@ -79,7 +79,7 @@ if [[ -n $ELASTIC_IP ]]; then
                        --query 'Addresses[0].AssociationId' \
                        --output text)
     if [[ -n $ASSOCIATION_ID && $ASSOCIATION_ID != "None" ]]; then
-        echo "Disassociating Elastic IP $ELASTIC_IP from Association ID $ASSOCIATION_ID"
+        echo "Disassociating Elastic IP $ELASTIC_IP from old instance..."
         aws ec2 disassociate-address --association-id $ASSOCIATION_ID
     else
         echo "No association found for Elastic IP $ELASTIC_IP"
