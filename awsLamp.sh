@@ -89,6 +89,7 @@ else
 fi
 
 # Get the IDs of the instances with the name "myWebServerAuto"
+echo "Looking for old instance if they exist..."
 EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
     --filters "Name=tag:Name,Values=myWebServerAuto" \
     --query 'Reservations[*].Instances[*].InstanceId' \
@@ -96,8 +97,9 @@ EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
 
 # If there are any running instances with the name "myWebServerAuto", terminate them
 if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
+  echo Deleting old instance...
   aws ec2 terminate-instances --instance-ids $EXISTING_INSTANCE_IDS > /dev/null
-  # Waiting for instance to be terminated...
+  # Waiting for old instance to be terminated...
   aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
 fi
 
@@ -126,19 +128,19 @@ else
         --cidr 0.0.0.0/0 > /dev/null
 fi
 
-# Check if a key pair exists
-if ! aws ec2 describe-key-pairs --key-names key_WebServerAuto >/dev/null 2>&1; then
-    echo "Creating new key pair..."
-    mkdir -p ~/.ssh
-    aws ec2 create-key-pair \
-        --key-name key_WebServerAuto \
-        --query 'KeyMaterial' \
-        --output text > ~/.ssh/key_WebServerAuto  
-    chmod 600 ~/.ssh/key_WebServerAuto
+# Check if a key pair exists and if so delete it
+if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
+  aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
+  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
 else
-    echo "Key pair 'key_WebServerAuto' already exists. Reusing it."
+  echo "Creating new key pair..."
+  mkdir -p ~/.ssh
+  aws ec2 create-key-pair \
+    --key-name key_WebServerAuto \
+    --query 'KeyMaterial' \
+    --output text > ~/.ssh/key_WebServerAuto  
+  chmod 600 ~/.ssh/key_WebServerAuto
 fi
-
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
@@ -199,17 +201,12 @@ else
         --public-ip $ELASTIC_IP > /dev/null
 fi
 
-# Check if the SSH config file already exists
-if [ ! -f ~/.ssh/config ]; then
-    # Creating a ssh config file for easy sshing
-    echo "Host vm
-    HostName $ELASTIC_IP
-    User ubuntu
-    IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
-    echo "SSH config file created successfully."
-else
-    echo "SSH config file already exists. Skipping creation."
-fi
+# Creating a ssh config file for easy sshing
+echo "Host vm
+HostName $ELASTIC_IP
+User ubuntu
+IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
+echo "SSH config file created successfully."
 
 echo Trying to SSH into new instance...please hold...
 sleep 10
