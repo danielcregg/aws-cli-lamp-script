@@ -108,7 +108,7 @@ if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
   sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
 fi
 
-printf "\e[3;4;31mCreating new security group...\e[0m\n"
+echo Creating new security group...
 SG_ID=$(aws ec2 create-security-group \
     --group-name webServerSecurityGroup \
     --description "Web Server security group" \
@@ -121,7 +121,7 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0 > /dev/null
 
-printf "\e[3;4;31mCreating new key pair...\e[0m\n"
+echo Creating new key pair...
 mkdir -p ~/.ssh
 aws ec2 create-key-pair \
     --key-name key_WebServerAuto \
@@ -129,7 +129,7 @@ aws ec2 create-key-pair \
     --output text > ~/.ssh/key_WebServerAuto  
 chmod 600 ~/.ssh/key_WebServerAuto
 
-printf "\e[3;4;31mFinding the latest Ubuntu Server Linux AMI in the current region...\e[0m\n"
+echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
     --owners 099720109477 \
     --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*' \
