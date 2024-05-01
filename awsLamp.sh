@@ -297,7 +297,7 @@ if [ '$INSTALL_MATOMO' = true ]; then
     sudo chown -R www-data:www-data /var/www/html/matomo
     sudo rm -rf /var/www/html/matomo.zip
     sudo rm -rf /var/www/html/'How to install Matomo.html'
-    sudo mysql -Bse "CREATE DATABASE matomodb;CREATE USER matomoadmin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;"
+    sudo mysql -Bse "DROP DATABASE IF EXISTS matomodb; DROP USER IF EXISTS matomoadmin@localhost; CREATE DATABASE matomodb; CREATE USER matomoadmin@localhost IDENTIFIED BY 'password'; GRANT ALL PRIVILEGES ON matomodb.* TO matomoadmin@localhost; FLUSH PRIVILEGES;"
     sudo -u www-data wp plugin install matomo --activate --path=/var/www/html/
     sudo -u www-data wp plugin install wp-piwik --activate --path=/var/www/html/
     sudo -u www-data wp plugin install super-progressive-web-apps --activate --path=/var/www/html/
