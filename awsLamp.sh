@@ -103,21 +103,21 @@ fi
 
 # Check if the security group already exists
 if aws ec2 describe-security-groups --group-names webServerSecurityGroup >/dev/null 2>&1; then
-    printf "\e[3;4;33mSecurity group 'webServerSecurityGroup' already exists. Retrieving ID...\e[0m\n"
+    echo Security group 'webServerSecurityGroup' already exists. Retrieving ID...
     # Retrieve the existing security group ID
     SG_ID=$(aws ec2 describe-security-groups \
                 --group-names webServerSecurityGroup \
                 --query 'SecurityGroups[0].GroupId' \
                 --output text)
 else
-    printf "\e[3;4;31mCreating new security group...\e[0m\n"
+    echo Creating new security group...
     # Creation logic if the security group doesn't exist
     SG_ID=$(aws ec2 create-security-group \
         --group-name webServerSecurityGroup \
         --description "Web Server security group" \
         --output text)
     
-    printf "\e[3;4;31mOpening required ports...\e[0m\n"
+    echo Opening required ports...
     # Authorize ingress traffic for SSH, HTTP, HTTPS, RDP, and additional port 8080
     aws ec2 authorize-security-group-ingress \
         --group-id $SG_ID \
