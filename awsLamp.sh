@@ -102,22 +102,28 @@ if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
 fi
 
 # Check if the security group already exists
-if aws ec2 describe-security-groups --filters Name=group-name,Values=webServerSecurityGroup --output text > /dev/null; then
-    printf "\e[3;4;33mSecurity group 'webServerSecurityGroup' already exists. Skipping creation...\e[0m\n"
+if aws ec2 describe-security-groups --group-names webServerSecurityGroup >/dev/null 2>&1; then
+    printf "\e[3;4;33mSecurity group 'webServerSecurityGroup' already exists. Retrieving ID...\e[0m\n"
+    # Retrieve the existing security group ID
+    SG_ID=$(aws ec2 describe-security-groups \
+                --group-names webServerSecurityGroup \
+                --query 'SecurityGroups[0].GroupId' \
+                --output text)
 else
-    # Creation logic if the security group doesn't exist 
     printf "\e[3;4;31mCreating new security group...\e[0m\n"
+    # Creation logic if the security group doesn't exist
     SG_ID=$(aws ec2 create-security-group \
-      --group-name webServerSecurityGroup \
-      --description "Web Server security group" \
-      --output text)
-
-    printf "\e[3;4;31mOpening required ports i.e. SSH, HTTP, HTTPS and RDP...\e[0m\n"
-    aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
-    aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
-    aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
-    aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
-    aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0 > /dev/null
+        --group-name webServerSecurityGroup \
+        --description "Web Server security group" \
+        --output text)
+    
+    printf "\e[3;4;31mOpening required ports...\e[0m\n"
+    # Authorize ingress traffic for SSH, HTTP, HTTPS, RDP, and additional port 8080
+    aws ec2 authorize-security-group-ingress \
+        --group-id $SG_ID \
+        --protocol tcp \
+        --port 22 80 443 3389 8080 \
+        --cidr 0.0.0.0/0 > /dev/null
 fi
 
 # Check if a key pair exists and if so delete it
