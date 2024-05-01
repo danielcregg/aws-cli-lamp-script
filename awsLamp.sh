@@ -109,19 +109,16 @@ else
     aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0 > /dev/null
 fi
 
-# Check if a key pair exists and if so delete it
-if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
-  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
+# Check if the key pair already exists
+if ! aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
+    printf "\e[3;4;31mCreating new key pair...\e[0m\n"
+    mkdir -p ~/.ssh
+    aws ec2 create-key-pair \
+        --key-name key_WebServerAuto \
+        --query 'KeyMaterial' \
+        --output text > ~/.ssh/key_WebServerAuto  
+    chmod 600 ~/.ssh/key_WebServerAuto
 fi
-
-printf "\e[3;4;31mCreating new key pair...\e[0m\n"
-mkdir -p ~/.ssh
-aws ec2 create-key-pair \
-    --key-name key_WebServerAuto \
-    --query 'KeyMaterial' \
-    --output text > ~/.ssh/key_WebServerAuto  
-chmod 600 ~/.ssh/key_WebServerAuto
 
 printf "\e[3;4;31mFinding the latest Ubuntu Server Linux AMI in the current region...\e[0m\n"
 aws ec2 describe-images \
@@ -159,33 +156,37 @@ echo Waiting for the new instance to enter a running state...
 aws ec2 wait instance-running \
     --instance-ids $INSTANCE_ID
 
-echo Allocating a new Elastic IP...
-ELASTIC_IP=$(aws ec2 allocate-address \
-    --domain vpc \
-    --query 'PublicIp' \
-    --output text)
+if [[ -n $ELASTIC_IP ]]; then
+    echo "Associating the existing Elastic IP with the new instance..."
+    aws ec2 associate-address \
+        --instance-id $INSTANCE_ID \
+        --public-ip $ELASTIC_IP > /dev/null
+else
+    echo "Allocating a new Elastic IP..."
+    ELASTIC_IP=$(aws ec2 allocate-address \
+        --domain vpc \
+        --query 'PublicIp' \
+        --output text)
 
-# Get the allocation ID of the Elastic IP
-ELASTIC_IP_ALLOCATION_ID=$(aws ec2 describe-addresses \
-    --public-ips $ELASTIC_IP \
-    --query 'Addresses[0].AllocationId' \
-    --output text)
+    echo "Adding a Name to the Elastic IP"
+    aws ec2 create-tags \
+        --resources $ELASTIC_IP \
+        --tags Key=Name,Value=elasticIPWebServerAuto
 
-echo Adding a Name to the Elastic IP
-aws ec2 create-tags \
-    --resources $ELASTIC_IP_ALLOCATION_ID \
-    --tags Key=Name,Value=elasticIPWebServerAuto
+    echo "Associating the new Elastic IP with the new instance..."
+    aws ec2 associate-address \
+        --instance-id $INSTANCE_ID \
+        --public-ip $ELASTIC_IP > /dev/null
+fi
 
-echo Associating the new Elastic IP with the new instance...
-aws ec2 associate-address \
-    --instance-id $INSTANCE_ID \
-    --public-ip $ELASTIC_IP > /dev/null
-
-# Creating a ssh config file for easy sshing. To ssh into the new instance just use command... ssh vm
-echo "Host vm
+# Check if the SSH config file already exists
+if [ ! -f ~/.ssh/config ]; then
+    # Creating a ssh config file for easy sshing. To ssh into the new instance just use command... ssh vm
+    echo "Host vm
     HostName $ELASTIC_IP
     User ubuntu
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
+fi
     
 echo Trying to SSH into new instance...please hold...
 sleep 10
