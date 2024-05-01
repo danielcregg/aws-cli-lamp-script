@@ -65,6 +65,7 @@ do
     esac
 done
 
+printf "\e[3;4;33mPreparing environment...\e[0m\n"
 # Find an Elastic IP with the tag 'elasticIPWebServerAuto' (assumes only one result)
 ELASTIC_IP=$(aws ec2 describe-addresses \
                --filters "Name=tag:Name,Values=elasticIPWebServerAuto" \
@@ -73,6 +74,7 @@ ELASTIC_IP=$(aws ec2 describe-addresses \
 
 # Check if ELASTIC_IP variable is not empty and disassociate if found
 if [[ -n $ELASTIC_IP ]]; then
+    printf "\e[3;4;33mFound old elastic IP... Reusing it.\e[0m\n"
     ASSOCIATION_ID=$(echo $ELASTIC_IP | jq -r '.AssociationId')
     aws ec2 disassociate-address --association-id $ASSOCIATION_ID
 fi
