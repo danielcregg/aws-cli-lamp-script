@@ -69,14 +69,23 @@ printf "\e[3;4;33mPreparing environment...\e[0m\n"
 # Find an Elastic IP with the tag 'elasticIPWebServerAuto' (assumes only one result)
 ELASTIC_IP=$(aws ec2 describe-addresses \
                --filters "Name=tag:Name,Values=elasticIPWebServerAuto" \
-               --query 'Addresses[0]' \
-               --output json) 
+               --query 'Addresses[0].PublicIp' \
+               --output text)
 
 # Check if ELASTIC_IP variable is not empty and disassociate if found
 if [[ -n $ELASTIC_IP ]]; then
-    printf "\e[3;4;33mFound old elastic IP... Reusing it.\e[0m\n"
-    ASSOCIATION_ID=$(echo $ELASTIC_IP | jq -r '.AssociationId')
-    aws ec2 disassociate-address --association-id $ASSOCIATION_ID
+    ASSOCIATION_ID=$(aws ec2 describe-addresses \
+                       --filters "Name=public-ip,Values=$ELASTIC_IP" \
+                       --query 'Addresses[0].AssociationId' \
+                       --output text)
+    if [[ -n $ASSOCIATION_ID && $ASSOCIATION_ID != "None" ]]; then
+        echo "Disassociating Elastic IP $ELASTIC_IP from Association ID $ASSOCIATION_ID"
+        aws ec2 disassociate-address --association-id $ASSOCIATION_ID
+    else
+        echo "No association found for Elastic IP $ELASTIC_IP"
+    fi
+else
+    echo "No Elastic IP found with tag 'elasticIPWebServerAuto'"
 fi
 
 # Get the IDs of the instances with the name "myWebServerAuto"
