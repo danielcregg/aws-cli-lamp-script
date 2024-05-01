@@ -126,19 +126,19 @@ else
         --cidr 0.0.0.0/0 > /dev/null
 fi
 
-# Check if a key pair exists and if so delete it
-if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
-  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
+# Check if a key pair exists
+if ! aws ec2 describe-key-pairs --key-names key_WebServerAuto >/dev/null 2>&1; then
+    echo "Creating new key pair..."
+    mkdir -p ~/.ssh
+    aws ec2 create-key-pair \
+        --key-name key_WebServerAuto \
+        --query 'KeyMaterial' \
+        --output text > ~/.ssh/key_WebServerAuto  
+    chmod 600 ~/.ssh/key_WebServerAuto
+else
+    echo "Key pair 'key_WebServerAuto' already exists. Reusing it."
 fi
 
-echo Creating new key pair...
-mkdir -p ~/.ssh
-aws ec2 create-key-pair \
-    --key-name key_WebServerAuto \
-    --query 'KeyMaterial' \
-    --output text > ~/.ssh/key_WebServerAuto  
-chmod 600 ~/.ssh/key_WebServerAuto
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
@@ -199,11 +199,17 @@ else
         --public-ip $ELASTIC_IP > /dev/null
 fi
 
-# Creating a ssh config file for easy sshing. To ssh into the new instance just use command... ssh vm
-echo "Host vm
-HostName $ELASTIC_IP
-User ubuntu
-IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
+# Check if the SSH config file already exists
+if [ ! -f ~/.ssh/config ]; then
+    # Creating a ssh config file for easy sshing
+    echo "Host vm
+    HostName $ELASTIC_IP
+    User ubuntu
+    IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
+    echo "SSH config file created successfully."
+else
+    echo "SSH config file already exists. Skipping creation."
+fi
 
 echo Trying to SSH into new instance...please hold...
 sleep 10
