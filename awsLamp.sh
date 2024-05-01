@@ -90,12 +90,6 @@ if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
   aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
 fi
 
-# Check if a key pair exists and if so delete it
-if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
-  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
-fi
-
 # Check if the security group already exists
 if aws ec2 describe-security-groups --filters Name=group-name,Values=webServerSecurityGroup --output text > /dev/null; then
     printf "\e[3;4;33mSecurity group 'webServerSecurityGroup' already exists. Skipping creation...\e[0m\n"
@@ -113,6 +107,12 @@ else
     aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
     aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
     aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0 > /dev/null
+fi
+
+# Check if a key pair exists and if so delete it
+if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
+  aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
+  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
 fi
 
 printf "\e[3;4;31mCreating new key pair...\e[0m\n"
@@ -181,6 +181,7 @@ aws ec2 associate-address \
     --instance-id $INSTANCE_ID \
     --public-ip $ELASTIC_IP > /dev/null
 
+# Creating a ssh config file for easy sshing. To ssh into the new instance just use command... ssh vm
 echo "Host vm
     HostName $ELASTIC_IP
     User ubuntu
