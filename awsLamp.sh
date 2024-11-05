@@ -223,18 +223,18 @@ fi
 
 if [ '$INSTALL_VSCODE' = true ]; then
     echo "Enable Vscode tunnel login via browser..." 
-    sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-    sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-    sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list"
-    sudo apt-get -qq update
-    sudo apt-get -qqy install code 2>/dev/null
-    sudo rm -rf packages.microsoft.gpg
-    code --install-extension ms-vscode.remote-server 2>/dev/null
+    #sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+    #sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+    #sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list"
+    #sudo apt-get -qq update
+    #sudo apt-get -qqy install code 2>/dev/null
+    #sudo rm -rf packages.microsoft.gpg
+    #code --install-extension ms-vscode.remote-server 2>/dev/null
     # local code-server install
-    sudo apt-get install -y build-essential
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-    sudo npm install -g code-server --unsafe-perm
+    #sudo apt-get install -y build-essential
+    #curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+    #sudo apt-get install -y nodejs
+    #sudo npm install -g code-server --unsafe-perm
     #sudo nohup code-server --auth none --bind-addr 0.0.0.0:8080 /var/www/html &
     #code tunnel service --accept-server-license-terms
     #cd /var/www/html/;sudo code tunnel --accept-server-license-terms --no-sleep
