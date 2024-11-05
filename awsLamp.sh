@@ -235,7 +235,7 @@ if [ '$INSTALL_VSCODE' = true ]; then
     curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
     sudo apt-get install -y nodejs
     sudo npm install -g code-server --unsafe-perm
-    sudo nohup code-server --auth none --bind-addr 0.0.0.0:8080 /var/www/html &
+    #sudo nohup code-server --auth none --bind-addr 0.0.0.0:8080 /var/www/html &
     #code tunnel service --accept-server-license-terms
     #cd /var/www/html/;sudo code tunnel --accept-server-license-terms --no-sleep
 fi
