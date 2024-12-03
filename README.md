@@ -1,12 +1,30 @@
-# AWS LAMP Stack Setup Script  
+# AWS LAMP Stack Automated Deployment Script
 
-## Usage  
+## Overview
+This bash script automates the deployment of a complete LAMP stack environment on AWS using the AWS CLI. It's designed to run in AWS CloudShell and provides a modular installation approach with various optional components.
 
-This is an bash script which incorporates AWS CLI commands to create an ubuntu based LAMP server on AWS. This script is meant to be run in AWS CloudShell. Here are the steps to run this script:
+## Features
+- **Base Installation**
+  - Ubuntu Server 22.04 LTS
+  - Apache2 web server
+  - MySQL database server
+  - PHP runtime
 
-1. Log into your AWS Dashboard
-2. Open the CloudShell and wait for it to load
-3. Issue this bash command:
+- **Optional Components**
+  - SFTP Access with root login
+  - VS Code Server for browser-based development
+  - Database Management Tools (Adminer & phpMyAdmin)
+  - WordPress CMS with optimized settings
+  - Matomo Analytics
+
+## Prerequisites
+- AWS Account with appropriate permissions
+- Access to AWS CloudShell
+
+## Quick Start
+1. Log into your AWS Management Console
+2. Open AWS CloudShell
+3. Run one of these commands:
 
 ```bash
 bash <(curl -sL tinyurl.com/awsLamp)
