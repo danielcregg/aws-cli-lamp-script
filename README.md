@@ -3,34 +3,20 @@
 ## Overview
 This bash script automates the deployment of a complete LAMP stack environment on AWS using the AWS CLI. It's designed to run in the AWS CloudShell or any bash terminal with AWS CLI installed. It provides a modular installation approach with various optional components.
 
-## Features
-- **Base Installation**
-  - Ubuntu Server 22.04 LTS
-
-- **Optional Components**
-  - LAMP
-  - SFTP Access with root login
-  - VS Code Server for browser-based development
-  - Database Management Tools (Adminer & phpMyAdmin)
-  - WordPress CMS with optimized settings
-  - Matomo Analytics
-
-## Prerequisites
-- AWS Account with appropriate permissions
-- Access to AWS CloudShell
-
 ## Quick Start
 1. Log into your AWS Management Console
 2. Open AWS CloudShell
-3. Run one of these commands:
+3. Run the command below in the AWS CloudShell terminal:
 
 ```bash
 bash <(curl -sL tinyurl.com/awsLamp)
 ```
+**NOTE**
+- If you run the script above with no flags it creates a clean Ubuntu instance on your AWS account under EC2. 
+- If you add the optional flags below it installs the associated software.
+- This script should take about 3 minutes to complete if all software is installed. 
 
-If you run the script above with no flags it creates a clean Ubuntu instance. If you add the flags below it installs the associated software. This script should take about 3 minutes to complete if all software is installed. 
-
-## Installation Options
+## Optional Installation flags
 
 Choose your installation type using one of these flags:
 
@@ -44,6 +30,22 @@ Choose your installation type using one of these flags:
 | `-mt` | • LAMP Stack<br>• SFTP Access<br>• VS Code Server<br>• Adminer<br>• phpMyAdmin<br>• WordPress<br>• Matomo | Adds Matomo analytics platform |
 
 Example usage:
+```bash
+bash <(curl -sL tinyurl.com/awsLamp) -mt
+```
+The above command would create an Ubuntu server with everything installed (i.e. LAMP Stack, SFTP Access, VS Code Server, Adminer, phpMyAdmin, WordPress, Matomo)
+
+## Features
+- **Base Installation**
+  - Ubuntu Server 22.04 LTS
+
+- **Optional Components**
+  - LAMP
+  - SFTP Access with root login
+  - VS Code Server for browser-based development
+  - Database Management Tools (Adminer & phpMyAdmin)
+  - WordPress CMS with optimized settings
+  - Matomo Analytics
 
 ### Post-Installation Instructions
 
