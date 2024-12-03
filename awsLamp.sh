@@ -88,7 +88,7 @@ EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
 if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
   aws ec2 terminate-instances --instance-ids $EXISTING_INSTANCE_IDS > /dev/null
   # Waiting for instance to be terminated...
-  aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
+  aws ec2 wait instance-terminated --instance-ids $EXISTING_INSTANCE_IDS
 fi
 
 # Get the ID of the security group if it exists
@@ -109,50 +109,21 @@ if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
 fi
 
 echo "Creating new security group..."
-# Create security group and store full output
-SG_OUTPUT=$(aws ec2 create-security-group \
+SG_ID=$(aws ec2 create-security-group \
     --group-name webServerSecurityGroup \
-    --description "Web Server security group")
+    --description "Web Server security group" \
+    --query 'GroupId' \
+    --output text)
 
-# Extract just the GroupId
-SG_ID=$(echo $SG_OUTPUT | jq -r '.GroupId')
-
-if [ -z "$SG_ID" ]; then
-    echo "Failed to create security group"
-    exit 1
-fi
-
-printf "\e[3;4;31mOpening required ports i.e. SSH, HTTP, HTTPS and RDP...\e[0m\n"
-# Fix security group authorization commands
-aws ec2 authorize-security-group-ingress \
-    --group-id "$SG_ID" \
-    --protocol tcp \
-    --port 22 \
-    --cidr 0.0.0.0/0
-
-aws ec2 authorize-security-group-ingress \
-    --group-id "$SG_ID" \
-    --protocol tcp \
-    --port 80 \
-    --cidr 0.0.0.0/0
-
-aws ec2 authorize-security-group-ingress \
-    --group-id "$SG_ID" \
-    --protocol tcp \
-    --port 443 \
-    --cidr 0.0.0.0/0
-
-aws ec2 authorize-security-group-ingress \
-    --group-id "$SG_ID" \
-    --protocol tcp \
-    --port 3389 \
-    --cidr 0.0.0.0/0
-
-aws ec2 authorize-security-group-ingress \
-    --group-id "$SG_ID" \
-    --protocol tcp \
-    --port 8080 \
-    --cidr 0.0.0.0/0
+echo "Opening required ports..."
+# Authorize ingress traffic for SSH, HTTP, HTTPS, RDP, and port 8080
+for port in 22 80 443 3389 8080; do
+    aws ec2 authorize-security-group-ingress \
+        --group-id "$SG_ID" \
+        --protocol tcp \
+        --port $port \
+        --cidr 0.0.0.0/0
+done
 
 echo Creating new key pair...
 mkdir -p ~/.ssh
@@ -190,7 +161,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
     --instance-type t2.medium \
     --key-name key_WebServerAuto \
     --security-group-ids "$SG_ID" \
-    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]' \
+    --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
     --query 'Instances[0].InstanceId' \
     --output text)
 
@@ -203,27 +174,28 @@ echo Waiting for the new instance to enter a running state...
 aws ec2 wait instance-running \
     --instance-ids $INSTANCE_ID
 
-echo Allocating a new Elastic IP...
-ELASTIC_IP=$(aws ec2 allocate-address \
+# Replace the Elastic IP section with this updated code:
+echo "Allocating a new Elastic IP..."
+ALLOCATION_ID=$(aws ec2 allocate-address \
     --domain vpc \
-    --query 'PublicIp' \
+    --query 'AllocationId' \
     --output text)
 
-# Get the allocation ID of the Elastic IP
-ELASTIC_IP_ALLOCATION_ID=$(aws ec2 describe-addresses \
-    --public-ips $ELASTIC_IP \
-    --query 'Addresses[0].AllocationId' \
-    --output text)
-
-echo Adding a Name to the Elastic IP
+echo "Tagging Elastic IP..."
 aws ec2 create-tags \
-    --resources $ELASTIC_IP_ALLOCATION_ID \
+    --resources "$ALLOCATION_ID" \
     --tags Key=Name,Value=elasticIPWebServerAuto
 
-echo Associating the new Elastic IP with the new instance...
+echo "Getting Elastic IP address..."
+ELASTIC_IP=$(aws ec2 describe-addresses \
+    --allocation-ids "$ALLOCATION_ID" \
+    --query 'Addresses[0].PublicIp' \
+    --output text)
+
+echo "Associating Elastic IP with the new instance..."
 aws ec2 associate-address \
-    --instance-id $INSTANCE_ID \
-    --public-ip $ELASTIC_IP > /dev/null
+    --instance-id "$INSTANCE_ID" \
+    --allocation-id "$ALLOCATION_ID"
 
 echo "Host vm
     HostName $ELASTIC_IP
