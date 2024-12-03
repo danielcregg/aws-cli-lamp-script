@@ -8,6 +8,7 @@ This bash script automates the deployment of a complete LAMP stack environment o
   - Ubuntu Server 22.04 LTS
 
 - **Optional Components**
+  - LAMP
   - SFTP Access with root login
   - VS Code Server for browser-based development
   - Database Management Tools (Adminer & phpMyAdmin)
