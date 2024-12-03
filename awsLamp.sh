@@ -56,12 +56,13 @@ wait_for_termination() {
 ###########################################
 # Command Line Argument Processing
 ###########################################
-# Parse command line arguments. If no arguments are provided, the script will only install LAMP.
+# Parse command line arguments. If no arguments are provided, the script will only install create an Ubuntu instance.
 # -lamp: Install LAMP
 # -sftp: Install LAMP and enable root login for SFTP
 # -vscode: Install LAMP, enable root login for SFTP and install VS Code
 # -db: Install LAMP, enable root login for SFTP, install VS Code and install Adminer and phpMyAdmin
 # -wp: Install LAMP, enable root login for SFTP, install VS Code, install Adminer and phpMyAdmin and install WordPress
+# -mt: Install LAMP, enable root login for SFTP, install VS Code, install Adminer and phpMyAdmin and install WordPress and Matomo
 for arg in "$@"
 do
     case $arg in
