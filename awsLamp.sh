@@ -288,7 +288,7 @@ while true; do
     printf "\rCurrent state: %-10s Time: %ds" "$STATE" "$elapsed_time"
     
     if [ "$STATE" = "running" ]; then
-        echo -e "\nInstance is running!"
+        echo -e "\nInstance is running..."
         # Give a few seconds for SSH to be ready
         sleep 10
         break
