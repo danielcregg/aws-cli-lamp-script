@@ -94,8 +94,32 @@ if [ -n "$EXISTING_INSTANCE_IDS" ]; then
     aws ec2 terminate-instances --instance-ids $EXISTING_INSTANCE_IDS > /dev/null
     echo " - Termination initiated for instances: $EXISTING_INSTANCE_IDS"
     echo " - Waiting for instances to terminate..."
-    aws ec2 wait instance-terminated --instance-ids $EXISTING_INSTANCE_IDS
-    echo " - Instances terminated successfully"
+    
+    # Show progress while waiting for termination
+    while true; do
+        STATUS=$(aws ec2 describe-instances \
+            --instance-ids $EXISTING_INSTANCE_IDS \
+            --query 'Reservations[*].Instances[*].[InstanceId,State.Name]' \
+            --output text)
+        
+        # Clear previous line and show current status
+        echo -en "\r\033[K - Current status:"
+        while IFS=$'\t' read -r id state; do
+            echo -n " $id: $state"
+        done <<< "$STATUS"
+        
+        # Check if all instances are terminated
+        if ! echo "$STATUS" | grep -qv "terminated"; then
+            echo -e "\n - All instances terminated successfully"
+            break
+        fi
+        
+        # Show spinning cursor
+        for cursor in '/' '-' '\' '|'; do
+            echo -en "\b$cursor"
+            sleep 0.5
+        done
+    done
 else
     echo " - No existing instances found"
 fi
