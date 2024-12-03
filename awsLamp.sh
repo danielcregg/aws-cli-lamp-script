@@ -150,10 +150,11 @@ if [ -n "$EXISTING_INSTANCE_IDS" ]; then
             --query 'Reservations[*].Instances[*].[InstanceId,State.Name]' \
             --output text)
         
-        # Clear previous line and show current status
+        # Clear previous line and show current status with fixed width
         echo -en "\r\033[K - Current status:"
         while IFS=$'\t' read -r id state; do
-            echo -n " $id: $state"
+            # Pad state to 15 characters to ensure consistent display
+            printf " %s: %-15s" "$id" "$state"
         done <<< "$STATUS"
         
         # Check if all instances are terminated
@@ -162,7 +163,7 @@ if [ -n "$EXISTING_INSTANCE_IDS" ]; then
             break
         fi
         
-        # Show spinning cursor
+        # Show spinning cursor at the end of the line
         for cursor in '/' '-' '\' '|'; do
             echo -en "\b$cursor"
             sleep 0.5
