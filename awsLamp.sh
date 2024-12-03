@@ -116,14 +116,40 @@ SG_ID=$(aws ec2 create-security-group \
     --output text)
 
 echo "Opening required ports..."
-# Authorize ingress traffic for SSH, HTTP, HTTPS, RDP, and port 8080
-for port in 22 80 443 3389 8080; do
-    aws ec2 authorize-security-group-ingress \
-        --group-id "$SG_ID" \
-        --protocol tcp \
-        --port $port \
-        --cidr 0.0.0.0/0
-done
+echo " - Opening SSH (port 22)"
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 22 \
+    --cidr 0.0.0.0/0 > /dev/null
+
+echo " - Opening HTTP (port 80)"
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 80 \
+    --cidr 0.0.0.0/0 > /dev/null
+
+echo " - Opening HTTPS (port 443)"
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 443 \
+    --cidr 0.0.0.0/0 > /dev/null
+
+echo " - Opening RDP (port 3389)"
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 3389 \
+    --cidr 0.0.0.0/0 > /dev/null
+
+echo " - Opening Code Server (port 8080)"
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 8080 \
+    --cidr 0.0.0.0/0 > /dev/null
 
 echo Creating new key pair...
 mkdir -p ~/.ssh
@@ -170,9 +196,32 @@ if [ -z "$INSTANCE_ID" ]; then
     exit 1
 fi
 
-echo Waiting for the new instance to enter a running state...
-aws ec2 wait instance-running \
-    --instance-ids $INSTANCE_ID
+echo "Waiting for instance to be ready..."
+while true; do
+    STATE=$(aws ec2 describe-instances \
+        --instance-ids "$INSTANCE_ID" \
+        --query 'Reservations[0].Instances[0].State.Name' \
+        --output text)
+    
+    printf "\rCurrent state: %-10s" "$STATE"
+    
+    if [ "$STATE" = "running" ]; then
+        echo -e "\nInstance is ready!"
+        # Wait a bit more for the OS to fully boot
+        echo "Waiting 30 seconds for system initialization..."
+        for i in {30..1}; do
+            printf "\rTime remaining: %2d seconds" "$i"
+            sleep 1
+        done
+        echo -e "\nSystem should be ready now"
+        break
+    elif [ "$STATE" = "terminated" ] || [ "$STATE" = "shutting-down" ]; then
+        echo -e "\nError: Instance terminated unexpectedly"
+        exit 1
+    fi
+    
+    sleep 2
+done
 
 # Replace the Elastic IP section with this updated code:
 echo "Allocating a new Elastic IP..."
