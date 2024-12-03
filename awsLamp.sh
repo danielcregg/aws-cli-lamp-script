@@ -65,55 +65,99 @@ do
     esac
 done
 
-printf "\e[3;4;31mCleaning up old resources...\e[0m\n"
-# Get the allocation IDs of the Elastic IPs with the tag name "WebServerPublicIPAuto"
+printf "\e[3;4;31mStarting cleanup of AWS resources...\e[0m\n"
+
+echo "1. Cleaning up Elastic IPs..."
 EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
     --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
     --query 'Tags[*].ResourceId' \
     --output text)
 
-# If there are any Elastic IPs with the tag name "WebServerPublicIPAuto", release them
-for ALLOCATION_ID in $EXISTING_ELASTIC_IP_ALLOCATION_IDS
-do
-  aws ec2 release-address --allocation-id $ALLOCATION_ID
-done
+if [ -n "$EXISTING_ELASTIC_IP_ALLOCATION_IDS" ]; then
+    echo " - Found existing Elastic IPs, releasing..."
+    for ALLOCATION_ID in $EXISTING_ELASTIC_IP_ALLOCATION_IDS; do
+        aws ec2 release-address --allocation-id $ALLOCATION_ID
+        echo " - Released Elastic IP with allocation ID: $ALLOCATION_ID"
+    done
+else
+    echo " - No existing Elastic IPs found"
+fi
 
-# Get the IDs of the instances with the name "myWebServerAuto"
+echo "2. Cleaning up EC2 instances..."
 EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
-    --filters "Name=tag:Name,Values=myWebServerAuto" \
+    --filters "Name=tag:Name,Values=myWebServerAuto" "Name=instance-state-name,Values=running,pending,stopping,stopped" \
     --query 'Reservations[*].Instances[*].InstanceId' \
     --output text)
 
-# If there are any running instances with the name "myWebServerAuto", terminate them
-if [ "$EXISTING_INSTANCE_IDS" != "" ]; then
-  aws ec2 terminate-instances --instance-ids $EXISTING_INSTANCE_IDS > /dev/null
-  # Waiting for instance to be terminated...
-  aws ec2 wait instance-terminated --instance-ids $EXISTING_INSTANCE_IDS
+if [ -n "$EXISTING_INSTANCE_IDS" ]; then
+    echo " - Found existing instances, terminating..."
+    aws ec2 terminate-instances --instance-ids $EXISTING_INSTANCE_IDS > /dev/null
+    echo " - Termination initiated for instances: $EXISTING_INSTANCE_IDS"
+    echo " - Waiting for instances to terminate..."
+    aws ec2 wait instance-terminated --instance-ids $EXISTING_INSTANCE_IDS
+    echo " - Instances terminated successfully"
+else
+    echo " - No existing instances found"
 fi
 
-# Get the ID of the security group if it exists
+echo "3. Cleaning up security groups..."
 EXISTING_SG_ID=$(aws ec2 describe-security-groups \
     --group-names webServerSecurityGroup \
     --query 'SecurityGroups[0].GroupId' \
     --output text 2>/dev/null)
 
-# If the security group exists, delete it
-if [ "$EXISTING_SG_ID" != "" ]; then
-  aws ec2 delete-security-group --group-id $EXISTING_SG_ID
-fi
-
-# Check if a key pair exists and if so delete it
-if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
-  aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
-  sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
+if [ -n "$EXISTING_SG_ID" ] && [ "$EXISTING_SG_ID" != "None" ]; then
+    echo " - Found existing security group, checking dependencies..."
+    
+    # Wait for any instances using the security group to terminate
+    while true; do
+        DEPENDENT_INSTANCES=$(aws ec2 describe-instances \
+            --filters "Name=instance.group-id,Values=$EXISTING_SG_ID" "Name=instance-state-name,Values=running,pending,stopping,stopped,shutting-down" \
+            --query 'Reservations[*].Instances[*].InstanceId' \
+            --output text)
+            
+        if [ -z "$DEPENDENT_INSTANCES" ]; then
+            break
+        fi
+        echo " - Waiting for dependent instances to terminate..."
+        sleep 5
+    done
+    
+    # Try to delete the security group
+    for i in 1 2 3; do
+        if aws ec2 delete-security-group --group-id $EXISTING_SG_ID 2>/dev/null; then
+            echo " - Security group deleted successfully"
+            break
+        else
+            if [ $i -eq 3 ]; then
+                echo "Failed to delete security group after 3 attempts. Please check AWS Console and try again."
+                exit 1
+            fi
+            echo " - Deletion attempt $i failed, waiting ${i}0 seconds..."
+            sleep $((i * 10))
+        fi
+    done
+else
+    echo " - No existing security group found"
 fi
 
 echo "Creating new security group..."
-SG_ID=$(aws ec2 create-security-group \
-    --group-name webServerSecurityGroup \
-    --description "Web Server security group" \
-    --query 'GroupId' \
-    --output text)
+# Try to create security group with retries
+for i in 1 2 3; do
+    SG_ID=$(aws ec2 create-security-group \
+        --group-name webServerSecurityGroup \
+        --description "Web Server security group" \
+        --query 'GroupId' \
+        --output text 2>/dev/null) && break
+    echo " - Creation attempt $i failed, waiting ${i}0 seconds..."
+    sleep $((i * 10))
+    if [ $i -eq 3 ]; then
+        echo "Failed to create security group after 3 attempts. Exiting..."
+        exit 1
+    fi
+done
+
+echo "Successfully created security group: $SG_ID"
 
 echo "Opening required ports..."
 echo " - Opening SSH (port 22)"
@@ -151,13 +195,40 @@ aws ec2 authorize-security-group-ingress \
     --port 8080 \
     --cidr 0.0.0.0/0 > /dev/null
 
-echo Creating new key pair...
-mkdir -p ~/.ssh
-aws ec2 create-key-pair \
-    --key-name key_WebServerAuto \
-    --query 'KeyMaterial' \
-    --output text > ~/.ssh/key_WebServerAuto  
-chmod 600 ~/.ssh/key_WebServerAuto
+echo "4. Cleaning up SSH keys..."
+if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
+    echo " - Found existing key pair, removing..."
+    # Remove from AWS
+    aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
+    # Remove local files
+    rm -f ~/.ssh/key_WebServerAuto* ~/.ssh/known_hosts* ~/.ssh/config
+    echo " - Removed key pair and local SSH files"
+    # Wait a moment for AWS to process the deletion
+    sleep 2
+else
+    echo " - No existing key pair found"
+fi
+
+echo "Creating new key pair..."
+# Try to create key pair with retries
+for i in 1 2 3; do
+    if mkdir -p ~/.ssh && \
+       aws ec2 create-key-pair \
+           --key-name key_WebServerAuto \
+           --query 'KeyMaterial' \
+           --output text > ~/.ssh/key_WebServerAuto 2>/dev/null; then
+        chmod 600 ~/.ssh/key_WebServerAuto
+        echo " - Key pair created successfully"
+        break
+    else
+        if [ $i -eq 3 ]; then
+            echo "Failed to create key pair after 3 attempts. Exiting..."
+            exit 1
+        fi
+        echo " - Creation attempt $i failed, waiting ${i}0 seconds..."
+        sleep $((i * 10))
+    fi
+done
 
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
