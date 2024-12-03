@@ -244,7 +244,7 @@ ELASTIC_IP=$(aws ec2 describe-addresses \
 echo "Associating Elastic IP with the new instance..."
 aws ec2 associate-address \
     --instance-id "$INSTANCE_ID" \
-    --allocation-id "$ALLOCATION_ID"
+    --allocation-id "$ALLOCATION_ID" > /dev/null
 
 echo "Host vm
     HostName $ELASTIC_IP
