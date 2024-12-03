@@ -108,18 +108,51 @@ if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
   sudo test -f ~/.ssh/key_WebServerAuto && sudo rm -rf ~/.ssh/key_WebServerAuto* ~/.ssh/known_host* ~/.ssh/config
 fi
 
-echo Creating new security group...
-SG_ID=$(aws ec2 create-security-group \
+echo "Creating new security group..."
+# Create security group and store full output
+SG_OUTPUT=$(aws ec2 create-security-group \
     --group-name webServerSecurityGroup \
-    --description "Web Server security group" \
-    --output text)
+    --description "Web Server security group")
+
+# Extract just the GroupId
+SG_ID=$(echo $SG_OUTPUT | jq -r '.GroupId')
+
+if [ -z "$SG_ID" ]; then
+    echo "Failed to create security group"
+    exit 1
+fi
 
 printf "\e[3;4;31mOpening required ports i.e. SSH, HTTP, HTTPS and RDP...\e[0m\n"
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 > /dev/null
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 > /dev/null
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 3389 --cidr 0.0.0.0/0 > /dev/null
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0 > /dev/null
+# Fix security group authorization commands
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 22 \
+    --cidr 0.0.0.0/0
+
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 80 \
+    --cidr 0.0.0.0/0
+
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 443 \
+    --cidr 0.0.0.0/0
+
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 3389 \
+    --cidr 0.0.0.0/0
+
+aws ec2 authorize-security-group-ingress \
+    --group-id "$SG_ID" \
+    --protocol tcp \
+    --port 8080 \
+    --cidr 0.0.0.0/0
 
 echo Creating new key pair...
 mkdir -p ~/.ssh
@@ -149,17 +182,22 @@ AMI_ID=$(aws ec2 describe-images \
     --query 'sort_by(Images, &CreationDate)[-1].ImageId' \
     --output text)
     
-echo Creating instance...
+echo "Creating instance..."
+# Fix instance creation command
 INSTANCE_ID=$(aws ec2 run-instances \
-    --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]" \
-    --image-id $AMI_ID \
+    --image-id "$AMI_ID" \
     --count 1 \
     --instance-type t2.medium \
     --key-name key_WebServerAuto \
-    --security-group-ids $SG_ID \
-    --output text \
+    --security-group-ids "$SG_ID" \
+    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=myWebServerAuto}]' \
     --query 'Instances[0].InstanceId' \
-    --block-device-mappings DeviceName=/dev/sda1,Ebs="{VolumeSize=15,VolumeType=gp2}")
+    --output text)
+
+if [ -z "$INSTANCE_ID" ]; then
+    echo "Failed to create instance"
+    exit 1
+fi
 
 echo Waiting for the new instance to enter a running state...
 aws ec2 wait instance-running \
