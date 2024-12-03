@@ -251,8 +251,21 @@ echo "Host vm
     User ubuntu
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
     
-echo Trying to SSH into new instance...please hold...
-sleep 10
+echo "Attempting to establish SSH connection..."
+MAX_RETRIES=3
+count=0
+while ! ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP 'exit' 2>/dev/null
+do
+    count=$((count+1))
+    printf "\rAttempt %d/%d " $count $MAX_RETRIES
+    if [ $count -eq $MAX_RETRIES ]; then
+        echo -e "\nFailed to establish SSH connection after $MAX_RETRIES attempts"
+        exit 1
+    fi
+    sleep 2
+done
+echo -e "\nSSH connection established!"
+
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 set -e
