@@ -31,6 +31,21 @@ This script should take about 3 minutes to complete.
 
 Optional flags: -lamp -sftp -vscode -db -wp -mt
 
+## Installation Options
+
+Choose your installation type using one of these flags:
+
+| Flag | Components Installed | Description |
+|------|---------------------|-------------|
+| `-lamp` | • LAMP Stack (Base) | Basic LAMP server setup with Apache, MySQL, and PHP |
+| `-sftp` | • LAMP Stack<br>• SFTP Access | Adds root SFTP access with password authentication |
+| `-vscode` | • LAMP Stack<br>• SFTP Access<br>• VS Code Server | Adds browser-based code editor with port 8080 access |
+| `-db` | • LAMP Stack<br>• SFTP Access<br>• VS Code Server<br>• Adminer<br>• phpMyAdmin | Adds web-based database management tools |
+| `-wp` | • LAMP Stack<br>• SFTP Access<br>• VS Code Server<br>• Adminer<br>• phpMyAdmin<br>• WordPress | Adds WordPress with optimized settings |
+| `-mt` | • LAMP Stack<br>• SFTP Access<br>• VS Code Server<br>• Adminer<br>• phpMyAdmin<br>• WordPress<br>• Matomo | Adds Matomo analytics platform |
+
+Example usage:
+
 ### Post-Installation Instructions
 
 After running the script, follow these instructions based on the software you chose to install:
