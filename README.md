@@ -1,14 +1,11 @@
 # AWS LAMP Stack Automated Deployment Script
 
 ## Overview
-This bash script automates the deployment of a complete LAMP stack environment on AWS using the AWS CLI. It's designed to run in AWS CloudShell and provides a modular installation approach with various optional components.
+This bash script automates the deployment of a complete LAMP stack environment on AWS using the AWS CLI. It's designed to run in the AWS CloudShell or any bash terminal with AWS CLI installed. It provides a modular installation approach with various optional components.
 
 ## Features
 - **Base Installation**
   - Ubuntu Server 22.04 LTS
-  - Apache2 web server
-  - MySQL database server
-  - PHP runtime
 
 - **Optional Components**
   - SFTP Access with root login
@@ -30,7 +27,7 @@ This bash script automates the deployment of a complete LAMP stack environment o
 bash <(curl -sL tinyurl.com/awsLamp)
 ```
 
-This script should take about 5 minutes to complete.
+This script should take about 3 minutes to complete.
 
 Optional flags: -lamp -sftp -vscode -db -wp -mt
 
