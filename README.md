@@ -28,9 +28,7 @@ This bash script automates the deployment of a complete LAMP stack environment o
 bash <(curl -sL tinyurl.com/awsLamp)
 ```
 
-This script should take about 3 minutes to complete.
-
-Optional flags: -lamp -sftp -vscode -db -wp -mt
+If you run the script above with no flags it creates a clean Ubuntu instance. If you add the flags below it installs the associated software. This script should take about 3 minutes to complete if all software is installed. 
 
 ## Installation Options
 
