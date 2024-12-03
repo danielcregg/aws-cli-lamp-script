@@ -1,12 +1,30 @@
 #!/bin/bash
 
-# This script is designed to be run in AWS CloudShell. Here are two bash differnet commands to run this script:
-# bash <(curl -sL tinyurl.com/awsLamp)
-# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/main/awsLamp.sh)
-# for the latest builds run below
-# bash <(curl -sL https://raw.githubusercontent.com/danielcregg/aws-cli-lamp-script/dev-branch/awsLamp.sh)
+###########################################
+# AWS LAMP Stack Deployment Script
+# 
+# This script automates the deployment of a LAMP stack on AWS.
+# It can optionally install:
+# - Basic LAMP (Linux, Apache, MySQL, PHP)
+# - SFTP access
+# - VS Code server
+# - Database management tools
+# - WordPress
+# - Matomo Analytics
+###########################################
 
-# The following variables are used to determine what to install
+###########################################
+# Configuration Variables
+###########################################
+TIMEOUT=120                    # Maximum wait time for instance startup (seconds)
+MAX_RETRIES=3                  # Maximum retry attempts for operations
+INSTANCE_TYPE="t2.medium"      # AWS instance type
+SSH_KEY_NAME="key_WebServerAuto"
+SECURITY_GROUP_NAME="webServerSecurityGroup"
+INSTANCE_TAG_NAME="myWebServerAuto"
+ELASTIC_IP_TAG_NAME="elasticIPWebServerAuto"
+
+# Feature flags
 INSTALL_LAMP=false
 INSTALL_SFTP=false
 INSTALL_VSCODE=false
@@ -14,6 +32,30 @@ INSTALL_DB=false
 INSTALL_WORDPRESS=false
 INSTALL_MATOMO=false
 
+###########################################
+# Helper Functions
+###########################################
+
+# Function to show spinner while waiting
+show_spinner() {
+    local message="$1"
+    echo -en "\r\033[K$message"
+    for cursor in '/' '-' '\' '|'; do
+        echo -en "\b$cursor"
+        sleep 0.5
+    done
+}
+
+# Function to check resource status
+wait_for_termination() {
+    local resource_id="$1"
+    local resource_type="$2"
+    # ...existing status check code...
+}
+
+###########################################
+# Command Line Argument Processing
+###########################################
 # Parse command line arguments. If no arguments are provided, the script will only install LAMP.
 # -lamp: Install LAMP
 # -sftp: Install LAMP and enable root login for SFTP
@@ -65,8 +107,12 @@ do
     esac
 done
 
+###########################################
+# Cleanup Phase
+###########################################
 printf "\e[3;4;31mStarting cleanup of AWS resources...\e[0m\n"
 
+# 1. Clean up Elastic IPs
 echo "1. Cleaning up Elastic IPs..."
 EXISTING_ELASTIC_IP_ALLOCATION_IDS=$(aws ec2 describe-tags \
     --filters "Name=key,Values=Name" "Name=value,Values=elasticIPWebServerAuto" "Name=resource-type,Values=elastic-ip" \
@@ -83,6 +129,7 @@ else
     echo " - No existing Elastic IPs found"
 fi
 
+# 2. Clean up EC2 instances
 echo "2. Cleaning up EC2 instances..."
 EXISTING_INSTANCE_IDS=$(aws ec2 describe-instances \
     --filters "Name=tag:Name,Values=myWebServerAuto" "Name=instance-state-name,Values=running,pending,stopping,stopped" \
@@ -124,6 +171,7 @@ else
     echo " - No existing instances found"
 fi
 
+# 3. Clean up security groups
 echo "3. Cleaning up security groups..."
 EXISTING_SG_ID=$(aws ec2 describe-security-groups \
     --group-names webServerSecurityGroup \
@@ -165,6 +213,26 @@ else
     echo " - No existing security group found"
 fi
 
+# 4. Clean up SSH keys
+echo "4. Cleaning up SSH keys..."
+if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
+    echo " - Found existing key pair, removing..."
+    # Remove from AWS
+    aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
+    # Remove local files
+    rm -f ~/.ssh/key_WebServerAuto* ~/.ssh/known_hosts* ~/.ssh/config
+    echo " - Removed key pair and local SSH files"
+    # Wait a moment for AWS to process the deletion
+    sleep 2
+else
+    echo " - No existing key pair found"
+fi
+
+###########################################
+# Resource Creation Phase
+###########################################
+
+# 1. Create security group and configure ports
 echo "Creating new security group..."
 # Try to create security group with retries
 for i in 1 2 3; do
@@ -219,20 +287,7 @@ aws ec2 authorize-security-group-ingress \
     --port 8080 \
     --cidr 0.0.0.0/0 > /dev/null
 
-echo "4. Cleaning up SSH keys..."
-if aws ec2 describe-key-pairs --key-name key_WebServerAuto >/dev/null 2>&1; then
-    echo " - Found existing key pair, removing..."
-    # Remove from AWS
-    aws ec2 delete-key-pair --key-name key_WebServerAuto > /dev/null
-    # Remove local files
-    rm -f ~/.ssh/key_WebServerAuto* ~/.ssh/known_hosts* ~/.ssh/config
-    echo " - Removed key pair and local SSH files"
-    # Wait a moment for AWS to process the deletion
-    sleep 2
-else
-    echo " - No existing key pair found"
-fi
-
+# 2. Create and configure SSH key pair
 echo "Creating new key pair..."
 # Try to create key pair with retries
 for i in 1 2 3; do
@@ -254,6 +309,7 @@ for i in 1 2 3; do
     fi
 done
 
+# 3. Launch EC2 instance
 echo Finding the latest Ubuntu Server Linux AMI in the current region...
 aws ec2 describe-images \
     --owners 099720109477 \
@@ -292,7 +348,6 @@ if [ -z "$INSTANCE_ID" ]; then
 fi
 
 echo "Waiting for instance to be ready..."
-TIMEOUT=120  # 2 minutes timeout
 start_time=$(date +%s)
 
 while true; do
@@ -324,7 +379,7 @@ while true; do
     sleep 2
 done
 
-# Replace the Elastic IP section with this updated code:
+# 4. Configure Elastic IP
 echo "Allocating a new Elastic IP..."
 ALLOCATION_ID=$(aws ec2 allocate-address \
     --domain vpc \
@@ -353,7 +408,6 @@ echo "Host vm
     IdentityFile ~/.ssh/key_WebServerAuto" > ~/.ssh/config
     
 echo "Attempting to establish SSH connection..."
-MAX_RETRIES=3
 count=0
 while ! ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP 'exit' 2>/dev/null
 do
@@ -367,11 +421,18 @@ do
 done
 echo -e "\nSSH connection established!"
 
+###########################################
+# Installation Phase
+###########################################
+
+echo "Starting software installation..."
 ssh -o StrictHostKeyChecking=no -i ~/.ssh/key_WebServerAuto ubuntu@$ELASTIC_IP \
 '\
 set -e
-echo "Successfully SSHed into new instance..."
 
+#----------------
+# LAMP Stack
+#----------------
 if [ '$INSTALL_LAMP' = true ]; then
     echo "Updating apt repos..."
     sudo apt-get -q update
@@ -387,6 +448,9 @@ if [ '$INSTALL_LAMP' = true ]; then
     sudo systemctl restart apache2
 fi
 
+#----------------
+# SFTP Access
+#----------------
 if [ '$INSTALL_SFTP' = true ]; then
     echo Enabling root login for SFTP...
     sudo sed -i "/PermitRootLogin/c\PermitRootLogin yes" /etc/ssh/sshd_config
@@ -394,6 +458,9 @@ if [ '$INSTALL_SFTP' = true ]; then
     sudo systemctl restart sshd
 fi
 
+#----------------
+# VS Code Server
+#----------------
 if [ '$INSTALL_VSCODE' = true ]; then
     echo "Enable Vscode tunnel login via browser..." 
     #sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
@@ -413,7 +480,9 @@ if [ '$INSTALL_VSCODE' = true ]; then
     #cd /var/www/html/;sudo code tunnel --accept-server-license-terms --no-sleep
 fi
 
-# Install DB tools if requested
+#----------------
+# Database Tools
+#----------------
 if [ '$INSTALL_DB' = true ]; then
     echo Installing Adminer...
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null
@@ -431,7 +500,9 @@ if [ '$INSTALL_DB' = true ]; then
     sudo DEBIAN_FRONTEND=noninteractive apt install -qq -y phpmyadmin
 fi
 
-# Install WordPress if requested
+#----------------
+# WordPress
+#----------------
 if [ '$INSTALL_WORDPRESS' = true ]; then
     echo Installing WordPress...
     echo Installing wp-cli...
@@ -465,7 +536,9 @@ if [ '$INSTALL_WORDPRESS' = true ]; then
     sudo -u www-data wp plugin install all-in-one-wp-migration --activate --path=/var/www/html/
 fi
 
-# Install Matomo if requested
+#----------------
+# Matomo Analytics
+#----------------
 if [ '$INSTALL_MATOMO' = true ]; then
     echo Installing Matomo Analytics Server
     sudo apt-get -qqy install unzip php-dom php-xml php-mbstring
@@ -481,6 +554,9 @@ if [ '$INSTALL_MATOMO' = true ]; then
     sudo -u www-data wp plugin install super-progressive-web-apps --activate --path=/var/www/html/
 fi
 
+###########################################
+# Final Status Output
+###########################################
 if [ '$INSTALL_LAMP' = true ]; then
     printf "\nClick on this link to open your website: \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)\e[0m\n"
 fi
