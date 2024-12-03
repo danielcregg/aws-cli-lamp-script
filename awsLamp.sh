@@ -197,23 +197,29 @@ if [ -z "$INSTANCE_ID" ]; then
 fi
 
 echo "Waiting for instance to be ready..."
+TIMEOUT=120  # 2 minutes timeout
+start_time=$(date +%s)
+
 while true; do
+    current_time=$(date +%s)
+    elapsed_time=$((current_time - start_time))
+    
+    if [ $elapsed_time -gt $TIMEOUT ]; then
+        echo -e "\nTimeout waiting for instance to be ready after $((TIMEOUT/60)) minutes"
+        exit 1
+    fi
+    
     STATE=$(aws ec2 describe-instances \
         --instance-ids "$INSTANCE_ID" \
         --query 'Reservations[0].Instances[0].State.Name' \
         --output text)
     
-    printf "\rCurrent state: %-10s" "$STATE"
+    printf "\rCurrent state: %-10s Time: %ds" "$STATE" "$elapsed_time"
     
     if [ "$STATE" = "running" ]; then
-        echo -e "\nInstance is ready!"
-        # Wait a bit more for the OS to fully boot
-        echo "Waiting 30 seconds for system initialization..."
-        for i in {30..1}; do
-            printf "\rTime remaining: %2d seconds" "$i"
-            sleep 1
-        done
-        echo -e "\nSystem should be ready now"
+        echo -e "\nInstance is running!"
+        # Give a few seconds for SSH to be ready
+        sleep 10
         break
     elif [ "$STATE" = "terminated" ] || [ "$STATE" = "shutting-down" ]; then
         echo -e "\nError: Instance terminated unexpectedly"
