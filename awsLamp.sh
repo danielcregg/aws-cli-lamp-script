@@ -436,11 +436,23 @@ set -e
 # LAMP Stack
 #----------------
 if [ '$INSTALL_LAMP' = true ]; then
+    echo "Fixing package repositories..."
+    sudo rm -rf /var/lib/apt/lists/*
+    sudo apt-get clean
+    sudo apt-get update --fix-missing
+    
     echo "Updating apt repos..."
-    sudo apt-get -q update
+    for i in 1 2 3; do
+        if sudo apt-get -q update; then
+            break
+        else
+            echo "Retrying apt update... attempt $i"
+            sleep 5
+        fi
+    done
 
     echo Installing LAMP...
-    sudo apt-get -qqfy install apache2 mysql-server php
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -qqfy install apache2 mysql-server php
 
     echo Configuring LAMP...
     sudo sed -i.bak -e "s/DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm/DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm/g" /etc/apache2/mods-enabled/dir.conf
