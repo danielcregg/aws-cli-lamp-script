@@ -40,23 +40,16 @@ INSTALL_MATOMO=false
 show_spinner() {
     local message="$1"
     echo -en "\r\033[K$message"
-    for cursor in '/' '-' '\' '|'; do
+    for cursor in '/' '-' '\\' '|'; do
         echo -en "\b$cursor"
         sleep 0.5
     done
 }
 
-# Function to check resource status
-wait_for_termination() {
-    local resource_id="$1"
-    local resource_type="$2"
-    # ...existing status check code...
-}
-
 ###########################################
 # Command Line Argument Processing
 ###########################################
-# Parse command line arguments. If no arguments are provided, the script will only install create an Ubuntu instance.
+# Parse command line arguments. If no arguments are provided, the script will only create an Ubuntu instance.
 # -lamp: Install LAMP
 # -sftp: Install LAMP and enable root login for SFTP
 # -vscode: Install LAMP, enable root login for SFTP and install VS Code
@@ -164,7 +157,7 @@ if [ -n "$EXISTING_INSTANCE_IDS" ]; then
         fi
         
         # Show spinning cursor at the end of the line
-        for cursor in '/' '-' '\' '|'; do
+        for cursor in '/' '-' '\\' '|'; do
             echo -en "\b$cursor"
             sleep 0.5
         done
@@ -476,22 +469,7 @@ fi
 # VS Code Server
 #----------------
 if [ '$INSTALL_VSCODE' = true ]; then
-    echo "Enable Vscode tunnel login via browser..." 
-    #sudo wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-    #sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-    #sudo sh -c "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main' > /etc/apt/sources.list.d/vscode.list"
-    #sudo apt-get -qq update
-    #sudo apt-get -qqy install code 2>/dev/null
-    #sudo rm -rf packages.microsoft.gpg
-    #code --install-extension ms-vscode.remote-server 2>/dev/null
-    # local code-server install
-    #sudo apt-get install -y build-essential
-    #curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    #sudo apt-get install -y nodejs
-    #sudo npm install -g code-server --unsafe-perm
-    #sudo nohup code-server --auth none --bind-addr 0.0.0.0:8080 /var/www/html &
-    #code tunnel service --accept-server-license-terms
-    #cd /var/www/html/;sudo code tunnel --accept-server-license-terms --no-sleep
+    echo "VS Code Server setup placeholder — configure as needed"
 fi
 
 #----------------
@@ -500,7 +478,7 @@ fi
 if [ '$INSTALL_DB' = true ]; then
     echo Installing Adminer...
     sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install adminer 2>/dev/null
-    echo Configuring Andminer
+    echo Configuring Adminer...
     sudo a2enconf adminer
     sudo mysql -Bse "CREATE USER IF NOT EXISTS admin@localhost IDENTIFIED BY \"password\";GRANT ALL PRIVILEGES ON *.* TO admin@localhost;FLUSH PRIVILEGES;"
     sudo systemctl reload apache2
@@ -593,7 +571,7 @@ if [ '$INSTALL_MATOMO' = true ]; then
     printf "\nOpen an internet browser (e.g. Chrome) and go to \e[3;4;33mhttp://$(dig +short myip.opendns.com @resolver1.opendns.com)/matomo\e[0m - You should see the Matomo Install page.\n"
 fi
 printf "\nYou can ssh into your new VM on this Cloud Shell using... \e[3;4;33mssh vm\e[0m\n"
-echo ********************************
-echo * SUCCESS! - Script completed! *
-echo ********************************
+echo "********************************"
+echo "* SUCCESS! - Script completed! *"
+echo "********************************"
 '
