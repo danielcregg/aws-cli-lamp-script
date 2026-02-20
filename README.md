@@ -1,6 +1,13 @@
 # AWS LAMP Stack Automated Deployment Script
 
+![Bash](https://img.shields.io/badge/Bash-4EAA25?style=flat-square&logo=gnubash&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)
+![Last Commit](https://img.shields.io/github/last-commit/danielcregg/aws-cli-lamp-script?style=flat-square)
+
 ## Overview
+
 This bash script automates the deployment of a complete LAMP stack environment on AWS using the AWS CLI. It's designed to run in the AWS CloudShell or any bash terminal with AWS CLI installed. It provides a modular installation approach with various optional components.
 
 ## Quick Start
@@ -58,4 +65,14 @@ After running the script, follow these instructions based on the software you ch
 - **Database**: Open a browser and go to `http://<your-ip>/adminer/?username=admin` to see the Adminer Login page. The username is 'admin' and the password is 'password'. You can update the password to your liking. Leave the Database field empty. Alternatively, you can go to `http://<your-ip>/phpmyadmin` to see the phpMyAdmin login page. The credentials are 'admin'/'password'.
 
 - **WordPress**: Open a browser and go to `http://<your-ip>` to see the WordPress page. To access the WordPress Dashboard, go to `http://<your-ip>/wp-admin`. The credentials are 'admin'/'password'.
+
+## Prerequisites
+
+- An active [AWS account](https://aws.amazon.com/)
+- Access to [AWS CloudShell](https://aws.amazon.com/cloudshell/) or a local terminal with the [AWS CLI](https://aws.amazon.com/cli/) installed and configured
+- Appropriate IAM permissions for EC2, VPC, and Elastic IP operations
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 

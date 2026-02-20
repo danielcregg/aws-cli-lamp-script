@@ -1,0 +1,20 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# SSH keys (never commit these)
+*.pem
+*.key
+
+# Logs
+*.log
